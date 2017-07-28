@@ -1,3 +1,4 @@
-exclude_files.txt
+.git*
 kafka_connector.py
 kafka_consts.py
+exclude_files.txt

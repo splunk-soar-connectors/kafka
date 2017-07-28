@@ -1,7 +1,7 @@
 {
     "appid": "8af3097f-fa31-47fd-bf2f-42f26f2ccc7e",
     "name": "Kafka",
-    "description": "This app supports ingesting data from and sending data to Apache Kafka",
+    "description": "This app implements <b>ingesting</b> and <b>sending</b> data on the Apache Kafka messaging system.",
     "publisher": "Phantom",
     "package_name": "phantom_kafka",
     "type": "generic",
@@ -12,7 +12,7 @@
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
-    "min_phantom_version": "2.0.260",
+    "min_phantom_version": "2.1.478",
     "logo": "apache.png",
     "configuration": {
       "hosts": {
