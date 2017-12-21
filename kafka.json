@@ -13,223 +13,233 @@
     "product_name": "Kafka",
     "product_version_regex": ".*",
     "min_phantom_version": "2.1.478",
-    "logo": "apache.png",
+    "logo": "logo_apache.svg",
+    "logo_dark": "logo_apache_dark.svg",
     "configuration": {
-      "hosts": {
-        "data_type": "string",
-        "description": "Hosts in cluster (comma separated e.g. host1.com:9092,host2.org:2181,10.10.10.10:9092)",
-        "required": true,
-        "order": 0
-      },
-      "topic": {
-        "data_type": "string",
-        "description": "Topic to subscribe to for ingestion",
-        "required": true,
-        "order": 1
-      },
-      "first_run_max_messages": {
-        "data_type": "numeric",
-        "order": 2,
-        "description": "Maximum messages to poll first time",
-        "default": 10000,
-        "required": true
-      },
-      "max_messages": {
-        "data_type": "numeric",
-        "description": "Maximum messages for scheduled polling",
-        "order": 3,
-        "default": 1000,
-        "required": true
-      },
-      "message_parser": {
-        "data_type": "file",
-        "description": "Python file containing a message parsing method",
-        "order": 4,
-        "required": false
-      },
-      "read_from_beginning": {
-        "data_type": "boolean",
-        "description": "Start ingesting from beginning of topic",
-        "required": true,
-        "default": false,
-        "order": 4
-      }
+        "hosts": {
+            "data_type": "string",
+            "description": "Hosts in cluster (comma separated e.g. host1.com:9092,host2.org:2181,10.10.10.10:9092)",
+            "required": true,
+            "order": 0
+        },
+        "topic": {
+            "data_type": "string",
+            "description": "Topic to subscribe to for ingestion",
+            "required": true,
+            "order": 1
+        },
+        "first_run_max_messages": {
+            "data_type": "numeric",
+            "order": 2,
+            "description": "Maximum messages to poll first time",
+            "default": 10000,
+            "required": true
+        },
+        "max_messages": {
+            "data_type": "numeric",
+            "description": "Maximum messages for scheduled polling",
+            "order": 3,
+            "default": 1000,
+            "required": true
+        },
+        "message_parser": {
+            "data_type": "file",
+            "description": "Python file containing a message parsing method",
+            "order": 4,
+            "required": false
+        },
+        "read_from_beginning": {
+            "data_type": "boolean",
+            "description": "Start ingesting from beginning of topic",
+            "required": true,
+            "default": false,
+            "order": 4
+        }
     },
     "actions": [
-      {
-        "action" : "test connectivity",
-        "description": "Checks connectivity with configured hosts",
-        "verbose": "",
-        "type": "test",
-        "identifier": "test_connectivity",
-        "read_only": true,
-        "parameters": {},
-        "output": [],
-        "versions": "EQ(*)"
-      },
-      {
-        "action" : "on poll",
-        "description": "Ingest messages from Kafka",
-        "verbose": "Basic configuration parameters for this action are available in asset configuration.<br><br>If <b>read_from_beginning</b> is set to true, the first poll will begin reading messages from the start of a topic, ingesting as many messages as indicated in <b>first_run_max_messages</b>. Setting it to false will result in the first poll seeking back in the topic as far as specified by <b>first_run_max_messages</b> and ingesting messages from there. If seeking reaches the beginning of the topic, the first poll will ingest all messages currently in the topic. All subsequent polls will ingest messages from the offset reached in the previous poll up to a maximum specified in <b>max_messages</b>. For a <b>poll now</b>, the app will ingest as many messages as specified by <b>artifact_count</b>, seeking back from the end of the topic.<br><br>This app creates containers and artifacts using the same format as the REST endpoint. It uses a message parsing method to decide how the containers and artifacts will look. A custom message parsing script can be uploaded during asset configuration to change how Kafka messages are ingested as containers and artifacts. There are three requirements for this script:<ul><li>It must contain a method called <b>parse_messages</b>. This is the method that will be called during the poll.</li><li>The method must accept exactly two arguments:<ul><li>First argument: A string which will be the name of the topic.</li><li>Second argument: A dictionary with keys that will be the offsets of the ingested messages. The dictionary's values will be the contents of the messages themselves.</li></ul><li>The method must return a list of dictionaries. Each dictionary must contain two fields:</li><ul><li><b>container</b> - a dictionary formatted as the body of a REST call to the Phantom /rest/container endpoint.</li><li><b>artifacts</b> - a list of dictionaries, with each dictionary formatted as the body of a REST call to the Phantom /rest/artifact endpoint.</li></ul></ul>Refer to the <b>REST API Documentation</b> section of the Phantom docs for more information on what can be included in the dictionaries used to create the containers and artifacts during ingestion.<br><br>The default message parsing script is called <b>kafka_parser.py</b> and can be found in the Kafka app directory. It contains:<br><br><pre>def parse_messages(topic, message_dict):<br><br>    ret_json = {}<br>    container_json = {}<br>    artifact_list = []<br><br>    ret_json['container'] = container_json<br>    ret_json['artifacts'] = artifact_list<br><br>    name = '{0} {1}'.format(topic, message_dict.keys()[0])<br>    if len(message_dict) > 1:<br>        name = '{0}  - {1}'.format(name, message_dict.keys()[-1])<br><br>    container_json['name'] = name<br>    container_json['description'] = 'A message from Kafka'<br>    container_json['run_automation'] = False<br><br>    count = 0<br>    num_artifacts = len(message_dict)<br>    for offset, message in message_dict.iteritems():<br><br>        artifact_json = {}<br>        artifact_list.append(artifact_json)<br><br>        artifact_json['source_data_identifier'] = offset<br>        artifact_json['cef'] = {'message': message}<br>        artifact_json['name'] = message[:100]<br><br>        if count < num_artifacts - 1:<br>            artifact_json['run_automation'] = False<br><br>        count += 1<br><br>    return [ret_json]</pre><br> This script will create one container per poll, and create one artifact in that container per message ingested. The source data identifier for the artifacts will be the offsets for each message. The data from the message will be put in the <b>message</b> CEF field. Any formatting of the data will not be preserved. Supply a custom parser to format the data as needed.",
-        "type": "ingest",
-        "identifier": "on_poll",
-        "read_only": false,
-        "parameters": {
-          "start_time": {
-            "data_type": "numeric",
-            "description": "Parameter ignored in this app"
-          },
-          "end_time": {
-            "data_type": "numeric",
-            "description": "Parameter ignored in this app"
-          },
-          "container_id": {
-            "data_type": "string",
-            "description": "Parameter ignored in this app"
-          },
-          "container_count": {
-            "data_type": "numeric",
-            "description": "Parameter ignored in this app"
-          },
-          "artifact_count": {
-            "data_type": "numeric",
-            "description": "Maximum number of messages to ingest during poll now",
-            "required": false,
-            "default": 1
-          }
+        {
+            "action": "test connectivity",
+            "description": "Checks connectivity with configured hosts",
+            "verbose": "",
+            "type": "test",
+            "identifier": "test_connectivity",
+            "read_only": true,
+            "parameters": {},
+            "output": [],
+            "versions": "EQ(*)"
         },
-        "output": [],
-        "versions":"EQ(*)"
-      },
-      {
-        "action" : "post data",
-        "description": "Post data to a Kafka topic",
-        "verbose": "This action creates a short-lived Kafka Producer that will post the supplied data to the given topic, then exit.<br><br>Two types of data are supported right now: string and JSON. When sending JSON, the app will format the JSON before posting it to the Kafka server. If the JSON is a list, the app will send each element of the list in separate messages. To send a list to Kafka, add an extra set of brackets around the list.<br><br>If the <b>timeout</b> parameter is set to 0 (which is the default), the app will not wait for the Kafka server to acknowledge receipt of the message. In such scenario, the action will not fill the <b>action_result.data.*</b> data paths in the result.",
-        "type": "generic",
-        "identifier": "post_data",
-        "read_only": false,
-        "lock": {
-          "enabled": false
+        {
+            "action": "on poll",
+            "description": "Ingest messages from Kafka",
+            "verbose": "Basic configuration parameters for this action are available in asset configuration.<br><br>If <b>read_from_beginning</b> is set to true, the first poll will begin reading messages from the start of a topic, ingesting as many messages as indicated in <b>first_run_max_messages</b>. Setting it to false will result in the first poll seeking back in the topic as far as specified by <b>first_run_max_messages</b> and ingesting messages from there. If seeking reaches the beginning of the topic, the first poll will ingest all messages currently in the topic. All subsequent polls will ingest messages from the offset reached in the previous poll up to a maximum specified in <b>max_messages</b>. For a <b>poll now</b>, the app will ingest as many messages as specified by <b>artifact_count</b>, seeking back from the end of the topic.<br><br>This app creates containers and artifacts using the same format as the REST endpoint. It uses a message parsing method to decide how the containers and artifacts will look. A custom message parsing script can be uploaded during asset configuration to change how Kafka messages are ingested as containers and artifacts. There are three requirements for this script:<ul><li>It must contain a method called <b>parse_messages</b>. This is the method that will be called during the poll.</li><li>The method must accept exactly two arguments:<ul><li>First argument: A string which will be the name of the topic.</li><li>Second argument: A dictionary with keys that will be the offsets of the ingested messages. The dictionary's values will be the contents of the messages themselves.</li></ul><li>The method must return a list of dictionaries. Each dictionary must contain two fields:</li><ul><li><b>container</b> - a dictionary formatted as the body of a REST call to the Phantom /rest/container endpoint.</li><li><b>artifacts</b> - a list of dictionaries, with each dictionary formatted as the body of a REST call to the Phantom /rest/artifact endpoint.</li></ul></ul>Refer to the <b>REST API Documentation</b> section of the Phantom docs for more information on what can be included in the dictionaries used to create the containers and artifacts during ingestion.<br><br>The default message parsing script is called <b>kafka_parser.py</b> and can be found in the Kafka app directory. It contains:<br><br><pre>def parse_messages(topic, message_dict):<br><br>    ret_json = {}<br>    container_json = {}<br>    artifact_list = []<br><br>    ret_json['container'] = container_json<br>    ret_json['artifacts'] = artifact_list<br><br>    name = '{0} {1}'.format(topic, message_dict.keys()[0])<br>    if len(message_dict) > 1:<br>        name = '{0}  - {1}'.format(name, message_dict.keys()[-1])<br><br>    container_json['name'] = name<br>    container_json['description'] = 'A message from Kafka'<br>    container_json['run_automation'] = False<br><br>    count = 0<br>    num_artifacts = len(message_dict)<br>    for offset, message in message_dict.iteritems():<br><br>        artifact_json = {}<br>        artifact_list.append(artifact_json)<br><br>        artifact_json['source_data_identifier'] = offset<br>        artifact_json['cef'] = {'message': message}<br>        artifact_json['name'] = message[:100]<br><br>        if count < num_artifacts - 1:<br>            artifact_json['run_automation'] = False<br><br>        count += 1<br><br>    return [ret_json]</pre><br> This script will create one container per poll, and create one artifact in that container per message ingested. The source data identifier for the artifacts will be the offsets for each message. The data from the message will be put in the <b>message</b> CEF field. Any formatting of the data will not be preserved. Supply a custom parser to format the data as needed.",
+            "type": "ingest",
+            "identifier": "on_poll",
+            "read_only": false,
+            "parameters": {
+                "start_time": {
+                    "data_type": "numeric",
+                    "description": "Parameter ignored in this app"
+                },
+                "end_time": {
+                    "data_type": "numeric",
+                    "description": "Parameter ignored in this app"
+                },
+                "container_id": {
+                    "data_type": "string",
+                    "description": "Parameter ignored in this app"
+                },
+                "container_count": {
+                    "data_type": "numeric",
+                    "description": "Parameter ignored in this app"
+                },
+                "artifact_count": {
+                    "data_type": "numeric",
+                    "description": "Maximum number of messages to ingest during poll now",
+                    "required": false,
+                    "default": 1
+                }
+            },
+            "output": [],
+            "versions": "EQ(*)"
         },
-        "parameters": {
-          "data_type": {
-            "description": "The type of the data being posted (can be string or JSON)",
-            "primary": false,
-            "data_type": "string",
-            "value_list": [ "string", "JSON" ],
-            "default": "string",
-            "order": 0,
-            "required": true
-          },
-          "data": {
-            "description": "The data to post",
-            "primary": false,
-            "data_type": "string",
-            "order": 1,
-            "required": true
-          },
-          "topic": {
-            "description": "The topic to post the data to",
-            "primary": true,
-            "data_type": "string",
-            "required": true,
-            "order": 2,
-            "contains": [ "kafka topic" ]
-          },
-          "timeout": {
-            "description": "How long (in seconds) to wait for message to be acknowledged by server",
-            "primary": false,
-            "data_type": "numeric",
-            "required": false,
-            "order": 3,
-            "default": 0
-          }
-        },
-        "render": {
-          "width": 12,
-          "title": "Post Data",
-          "type": "table",
-          "height": 5
-        },
-        "output": [
-          {
-            "data_path": "action_result.data.*.topic",
-            "data_type": "string",
-            "contains": [ "kafka topic" ]
-          },
-          {
-            "data_path": "action_result.data.*.offset",
-            "data_type": "numeric"
-          },
-          {
-            "data_path": "action_result.data.*.checksum",
-            "data_type": "numeric"
-          },
-          {
-            "data_path": "action_result.data.*.partition",
-            "data_type": "numeric"
-          },
-          {
-            "data_path": "action_result.data.*.timestamp",
-            "data_type": "numeric"
-          },
-          {
-            "data_path": "action_result.data.*.topic_partition",
-            "data_type": "numeric"
-          },
-          {
-            "data_path": "action_result.data.*.serialized_key_size",
-            "data_type": "numeric"
-          },
-          {
-            "data_path": "action_result.data.*.serialized_value_size",
-            "data_type": "numeric"
-          },
-          {
-            "data_path": "action_result.status",
-            "data_type": "string",
-            "column_name": "Status",
-            "column_order": 2
-          },
-          {
-            "data_path": "action_result.message",
-            "data_type": "string"
-          },
-          {
-            "data_path": "action_result.summary",
-            "data_type": "string"
-          },
-          {
-            "data_path": "action_result.parameter.data",
-            "data_type": "string"
-          },
-          {
-            "data_path": "action_result.parameter.topic",
-            "data_type": "string",
-            "column_name": "Topic",
-            "column_order": 0,
-            "contains": [ "kafka topic" ]
-          },
-          {
-            "data_path": "action_result.parameter.data_type",
-            "data_type": "string",
-            "column_name": "Data Type",
-            "column_order": 1
-          },
-          {
-            "data_path": "action_result.parameter.timeout",
-            "data_type": "numeric"
-          },
-          {
-            "data_path": "summary.total_objects",
-            "data_type": "numeric"
-          },
-          {
-            "data_path": "summary.total_objects_successful",
-            "data_type": "numeric"
-          }
-        ],
-        "versions":"EQ(*)"
-      }
+        {
+            "action": "post data",
+            "description": "Post data to a Kafka topic",
+            "verbose": "This action creates a short-lived Kafka Producer that will post the supplied data to the given topic, then exit.<br><br>Two types of data are supported right now: string and JSON. When sending JSON, the app will format the JSON before posting it to the Kafka server. If the JSON is a list, the app will send each element of the list in separate messages. To send a list to Kafka, add an extra set of brackets around the list.<br><br>If the <b>timeout</b> parameter is set to 0 (which is the default), the app will not wait for the Kafka server to acknowledge receipt of the message. In such scenario, the action will not fill the <b>action_result.data.*</b> data paths in the result.",
+            "type": "generic",
+            "identifier": "post_data",
+            "read_only": false,
+            "lock": {
+                "enabled": false
+            },
+            "parameters": {
+                "data_type": {
+                    "description": "The type of the data being posted (can be string or JSON)",
+                    "primary": false,
+                    "data_type": "string",
+                    "value_list": [
+                        "string",
+                        "JSON"
+                    ],
+                    "default": "string",
+                    "order": 0,
+                    "required": true
+                },
+                "data": {
+                    "description": "The data to post",
+                    "primary": false,
+                    "data_type": "string",
+                    "order": 1,
+                    "required": true
+                },
+                "topic": {
+                    "description": "The topic to post the data to",
+                    "primary": true,
+                    "data_type": "string",
+                    "required": true,
+                    "order": 2,
+                    "contains": [
+                        "kafka topic"
+                    ]
+                },
+                "timeout": {
+                    "description": "How long (in seconds) to wait for message to be acknowledged by server",
+                    "primary": false,
+                    "data_type": "numeric",
+                    "required": false,
+                    "order": 3,
+                    "default": 0
+                }
+            },
+            "render": {
+                "width": 12,
+                "title": "Post Data",
+                "type": "table",
+                "height": 5
+            },
+            "output": [
+                {
+                    "data_path": "action_result.data.*.topic",
+                    "data_type": "string",
+                    "contains": [
+                        "kafka topic"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.offset",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.checksum",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.partition",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.timestamp",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.topic_partition",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.serialized_key_size",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.serialized_value_size",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "Status",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.topic",
+                    "data_type": "string",
+                    "column_name": "Topic",
+                    "column_order": 0,
+                    "contains": [
+                        "kafka topic"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.data_type",
+                    "data_type": "string",
+                    "column_name": "Data Type",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.parameter.timeout",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "versions": "EQ(*)"
+        }
     ]
 }
