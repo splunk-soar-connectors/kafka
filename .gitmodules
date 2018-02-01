@@ -1,3 +1,6 @@
-[submodule "dependencies/kafka-python"]
-	path = dependencies/kafka-python
-	url = ssh://git@prod-bb-1.phantom.local:7999/PER/kafka-python.git
+[submodule "wheels/gssapi"]
+	path = wheels/gssapi
+	url = ssh://git@prod-bb-1.phantom.local:7999/per/gssapi.git
+[submodule "wheels/kafka"]
+	path = wheels/kafka
+	url = ssh://git@prod-bb-1.phantom.local:7999/per/kafka-python.git

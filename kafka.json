@@ -1,19 +1,35 @@
 {
     "appid": "8af3097f-fa31-47fd-bf2f-42f26f2ccc7e",
     "name": "Kafka",
-    "description": "This app implements <b>ingesting</b> and <b>sending</b> data on the Apache Kafka messaging system.",
+    "description": "This app implements ingesting and sending data on the Apache Kafka messaging system.",
     "publisher": "Phantom",
     "package_name": "phantom_kafka",
     "type": "generic",
-    "license": "Copyright (c) Phantom Cyber Corporation 2017",
+    "license": "Copyright (c) Phantom Cyber Corporation 2017-2018",
     "main_module": "kafka_connector.pyc",
-    "app_version": "1.1.12",
+    "app_version": "1.2.0",
     "utctime_updated": "2017-12-19T23:41:50.000000Z",
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
-    "min_phantom_version": "2.1.478",
+    "min_phantom_version": "3.0.251",
     "logo": "apache.png",
+    "pip_dependencies": {
+        "wheel": [
+            {
+                "module": "kafka-python",
+                "input_file": "wheels/kafka/kafka_python-1.3.6.dev0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "gssapi",
+                "input_file": "wheels/gssapi/gssapi-1.3.0-cp27-cp27mu-linux_x86_64.whl"
+            },
+            {
+                "module": "enum34",
+                "input_file": "wheels/gssapi/enum34-1.1.6-py2-none-any.whl"
+            }
+        ]
+    },
     "configuration": {
         "hosts": {
             "data_type": "string",
@@ -27,9 +43,19 @@
             "required": true,
             "order": 1
         },
+        "use_kerberos": {
+            "data_type": "string",
+            "description": "Kerberos Principal",
+            "required": false,
+            "order": 2
+        },
+        "ph": {
+            "data_type": "ph",
+            "order": 3
+        },
         "first_run_max_messages": {
             "data_type": "numeric",
-            "order": 2,
+            "order": 4,
             "description": "Maximum messages to poll first time",
             "default": 10000,
             "required": true
@@ -37,14 +63,14 @@
         "max_messages": {
             "data_type": "numeric",
             "description": "Maximum messages for scheduled polling",
-            "order": 3,
+            "order": 5,
             "default": 1000,
             "required": true
         },
         "message_parser": {
             "data_type": "file",
             "description": "Python file containing a message parsing method",
-            "order": 4,
+            "order": 6,
             "required": false
         },
         "read_from_beginning": {
@@ -52,7 +78,7 @@
             "description": "Start ingesting from beginning of topic",
             "required": true,
             "default": false,
-            "order": 4
+            "order": 7
         }
     },
     "actions": [
