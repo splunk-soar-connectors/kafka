@@ -1,7 +1,7 @@
 {
     "appid": "8af3097f-fa31-47fd-bf2f-42f26f2ccc7e",
     "name": "Kafka",
-    "description": "This app implements ingesting and sending data on the Apache Kafka messaging system.",
+    "description": "This app implements ingesting and sending data on the Apache Kafka messaging system",
     "publisher": "Phantom",
     "package_name": "phantom_kafka",
     "type": "generic",
@@ -45,13 +45,17 @@
             "order": 1
         },
         "use_kerberos": {
-            "data_type": "string",
-            "description": "Kerberos Principal",
+            "data_type": "boolean",
+            "description": "Use Kerberos auth",
             "required": false,
+            "default": false,
             "order": 2
         },
-        "ph": {
-            "data_type": "ph",
+        "use_ssl": {
+            "data_type": "boolean",
+            "description": "Use SSL",
+            "required": false,
+            "default": false,
             "order": 3
         },
         "first_run_max_messages": {

@@ -45,6 +45,8 @@ class KafkaConnector(phantom.BaseConnector):
 
         self._state = {}
         self._producer = None
+        self._host_list = None
+        self._client_args = None
 
     def initialize(self):
 
@@ -52,18 +54,16 @@ class KafkaConnector(phantom.BaseConnector):
 
         config = self.get_config()
 
+        self._host_list = config['hosts'].split(',')
+        self._client_args = {'bootstrap_servers': self._host_list}
+
+        if config.get('use_kerberos', False):
+            sec_prot = 'SASL_SSL' if config.get('use_ssl') else 'SASL_PLAINTEXT'
+            self._client_args.update({'security_protocol': sec_prot, 'sasl_mechanism': 'GSSAPI'})
+
         try:
-
             if self.get_action_identifier() == self.ACTION_ID_POST_DATA:
-
-                host_list = config['hosts'].split(',')
-                kwargs = {'bootstrap_servers': host_list}
-
-                if config.get('use_kerberos', False):
-                    kwargs.update({'security_protocol': 'SASL_PLAINTEXT', 'sasl_mechanism': 'GSSAPI'})
-
-                self._producer = KafkaProducer(**kwargs)
-
+                self._producer = KafkaProducer(**self._client_args)
         except Exception as e:
             self.save_progress(traceback.format_exc())
             return self.set_status(phantom.APP_ERROR, consts.KAFKA_PRODUCER_CREATE_ERROR.format(e))
@@ -82,19 +82,14 @@ class KafkaConnector(phantom.BaseConnector):
 
         config = self.get_config()
 
-        host_list = config['hosts'].split(',')
-
         try:
-            kwargs = {'bootstrap_servers': host_list}
-            if config.get('use_kerberos', False):
-                kwargs.update({'security_protocol': 'SASL_PLAINTEXT', 'sasl_mechanism': 'GSSAPI'})
-            KafkaConsumer(**kwargs)
+            KafkaConsumer(**self._client_args)
         except Exception as e:
             self.save_progress(consts.KAFKA_PRODUCER_CREATE_ERROR.format(e))
             self.save_progress(traceback.format_exc())
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TEST_CONNECTIVITY_FAILED)
 
-        if not self._check_hosts(host_list):
+        if not self._check_hosts(self._host_list):
             self.save_progress(consts.KAFKA_WARNING_SOME_HOSTS_FAILED)
 
         parser = config.get('message_parser')
@@ -205,17 +200,11 @@ class KafkaConnector(phantom.BaseConnector):
         if bool(re.compile(r'[^A-Za-z0-9._-]').search(topic)):
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TOPIC_INVALID_ERROR)
 
-        host_list = self.get_config()['hosts'].split(',')
-
-        if not self._check_hosts(host_list):
+        if not self._check_hosts(self._host_list):
             self.save_progress(traceback.format_exc())
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_PRODUCER_CREATE_ERROR)
 
-        kwargs = {'bootstrap_servers': host_list}
-        if config.get('use_kerberos', False):
-            kwargs.update({'security_protocol': 'SASL_PLAINTEXT', 'sasl_mechanism': 'GSSAPI'})
-
-        consumer = KafkaConsumer(**kwargs)
+        consumer = KafkaConsumer(**self._client_args)
 
         partitions = consumer.partitions_for_topic(topic)
         if (not partitions):
@@ -354,11 +343,7 @@ class KafkaConnector(phantom.BaseConnector):
                         self.save_progress(consts.KAFKA_ERROR_INVALID_PORT.format(host, split_host[1]))
                         failed = True
 
-                kwargs = {'bootstrap_servers': host}
-                if self.get_config().get('use_kerberos', False):
-                    kwargs.update({'security_protocol': 'SASL_PLAINTEXT', 'sasl_mechanism': 'GSSAPI'})
-
-                KafkaProducer(**kwargs)
+                KafkaProducer(**self._client_args)
 
             except NoBrokersAvailable as e:
                 self.save_progress(consts.KAFKA_PRODUCER_NO_BROKERS_ERROR.format(host, e))
