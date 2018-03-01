@@ -1,0 +1,22 @@
+<!-- 
+File: readme.html
+
+Copyright (c) Phantom Cyber Corporation, 2017-2018
+
+This unpublished material is proprietary to Phantom Cyber.
+All rights reserved. The methods and
+techniques described herein are considered trade secrets
+and/or confidential. Reproduction or distribution, in whole
+or in part, is forbidden except by express written permission
+of Phantom Cyber.
+-->
+
+<p>
+    <h2>Kerberos Authentication</h2>
+    <ul>
+        <li>A Kerberos Principal will be needed for "<b>phantom</b>"</li>
+        <li>Normal Kerberos requirements (KDC, Keytabs, Principals, etc) still apply</li>
+        <li><b>kinit</b> must be run for the <b>phantom</b> principal, for the <b>phantom-worker</b> user</li>
+        <li>It should be noted that Kerberos tickets will expire, so it is recommended to use a script to run <b>kinit</b> periodically to refresh the ticket for <b>phantom-worker</b></li>
+    </ul>
+</p>

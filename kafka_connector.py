@@ -1,7 +1,7 @@
 # --
 # File: kafka_connector.py
 #
-# Copyright (c) Phantom Cyber Corporation, 2017
+# Copyright (c) Phantom Cyber Corporation, 2017-2018
 #
 # This unpublished material is proprietary to Phantom Cyber.
 # All rights reserved. The methods and
@@ -19,16 +19,12 @@ import phantom.app as phantom
 import kafka_consts as consts
 from kafka_parser import parse_messages
 
-import os
 import re
 import imp
 import inspect
+import traceback
 import simplejson as json
 
-app_dir = os.path.dirname(os.path.abspath(__file__))  # noqa
-if (os.path.exists('{}/dependencies'.format(app_dir))):  # noqa
-    os.sys.path.insert(0, '{}/dependencies/kafka-python'.format(app_dir))  # noqa
-    os.sys.path.insert(0, '{}/dependencies'.format(app_dir))  # noqa
 from kafka import KafkaProducer, KafkaConsumer, TopicPartition  # pylint: disable=E0611
 from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
 
@@ -48,72 +44,35 @@ class KafkaConnector(phantom.BaseConnector):
         super(KafkaConnector, self).__init__()
 
         self._state = {}
-        self.producer = None
+        self._producer = None
+        self._host_list = None
+        self._client_args = None
 
     def initialize(self):
 
-        if (hasattr(self, 'load_state')):
-            self._state = self.load_state()
-        else:
-            self._load_state()
+        self._state = self.load_state()
+
+        config = self.get_config()
+
+        self._host_list = config['hosts'].split(',')
+        self._client_args = {'bootstrap_servers': self._host_list}
+
+        if config.get('use_kerberos', False):
+            sec_prot = 'SASL_SSL' if config.get('use_ssl') else 'SASL_PLAINTEXT'
+            self._client_args.update({'security_protocol': sec_prot, 'sasl_mechanism': 'GSSAPI'})
 
         try:
-
             if self.get_action_identifier() == self.ACTION_ID_POST_DATA:
-                host_list = self.get_config()['hosts'].split(',')
-                self.producer = KafkaProducer(bootstrap_servers=host_list)
-
+                self._producer = KafkaProducer(**self._client_args)
         except Exception as e:
+            self.save_progress(traceback.format_exc())
             return self.set_status(phantom.APP_ERROR, consts.KAFKA_PRODUCER_CREATE_ERROR.format(e))
 
         return phantom.APP_SUCCESS
 
     def finalize(self):
 
-        if (hasattr(self, 'save_state')):
-            self.save_state(self._state)
-        else:
-            self._save_state()
-
-        return phantom.APP_SUCCESS
-
-    def _load_state(self):
-
-        dirpath = os.path.split(os.path.abspath(__file__))[0]
-        asset_id = self.get_asset_id()
-        state_file_path = "{0}/{1}_state.json".format(dirpath, asset_id)
-
-        self._state = {}
-
-        try:
-            with open(state_file_path, 'r') as f:
-                in_json = f.read()
-                self._state = json.loads(in_json)
-        except Exception as e:
-            self.debug_print("In _load_state: Exception: {0}".format(str(e)))
-            pass
-
-        self.debug_print("Loaded state: ", self._state)
-
-        return phantom.APP_SUCCESS
-
-    def _save_state(self):
-
-        self.debug_print("Saving state: ", self._state)
-
-        dirpath = os.path.split(os.path.abspath(__file__))[0]
-        asset_id = self.get_asset_id()
-        state_file_path = "{0}/{1}_state.json".format(dirpath, asset_id)
-
-        if (not state_file_path):
-            self.debug_print("_state_file_path is None in _save_state")
-            return phantom.APP_SUCCESS
-
-        try:
-            with open(state_file_path, 'w+') as f:
-                f.write(json.dumps(self._state))
-        except:
-            pass
+        self.save_state(self._state)
 
         return phantom.APP_SUCCESS
 
@@ -123,15 +82,14 @@ class KafkaConnector(phantom.BaseConnector):
 
         config = self.get_config()
 
-        host_list = config['hosts'].split(',')
-
         try:
-            KafkaProducer(bootstrap_servers=host_list)
+            KafkaConsumer(**self._client_args)
         except Exception as e:
             self.save_progress(consts.KAFKA_PRODUCER_CREATE_ERROR.format(e))
+            self.save_progress(traceback.format_exc())
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TEST_CONNECTIVITY_FAILED)
 
-        if not self._check_hosts(host_list):
+        if not self._check_hosts(self._host_list):
             self.save_progress(consts.KAFKA_WARNING_SOME_HOSTS_FAILED)
 
         parser = config.get('message_parser')
@@ -242,12 +200,11 @@ class KafkaConnector(phantom.BaseConnector):
         if bool(re.compile(r'[^A-Za-z0-9._-]').search(topic)):
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TOPIC_INVALID_ERROR)
 
-        host_list = self.get_config()['hosts'].split(',')
-
-        if not self._check_hosts(host_list):
+        if not self._check_hosts(self._host_list):
+            self.save_progress(traceback.format_exc())
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_PRODUCER_CREATE_ERROR)
 
-        consumer = KafkaConsumer(bootstrap_servers=host_list)
+        consumer = KafkaConsumer(**self._client_args)
 
         partitions = consumer.partitions_for_topic(topic)
         if (not partitions):
@@ -313,7 +270,7 @@ class KafkaConnector(phantom.BaseConnector):
 
         if data_type == 'JSON':
 
-            self.producer.config['value_serializer'] = lambda x: json.dumps(x, indent=4, separators=(',', ': '), ensure_ascii=False).encode('utf-8')
+            self._producer.config['value_serializer'] = lambda x: json.dumps(x, indent=4, separators=(',', ': '), ensure_ascii=False).encode('utf-8')
 
             try:
                 data = json.loads(data)
@@ -332,12 +289,15 @@ class KafkaConnector(phantom.BaseConnector):
         if len(data) == 0:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_EMPTY_LIST)
 
+        count = 0
         failed = 0
         for message in data:
 
+            count += 1
+
             try:
 
-                send = self.producer.send(topic, message)
+                send = self._producer.send(topic, message)
 
                 if timeout:
 
@@ -349,6 +309,9 @@ class KafkaConnector(phantom.BaseConnector):
                         raise Exception(consts.KAFKA_ERROR_NO_OFFSET)
 
                     action_result.add_data(self._build_result_dict(send_data))
+
+                elif count == len(data):
+                    send.get()
 
             except KafkaTimeoutError:
                 self.save_progress(consts.KAFKA_ERROR_TIMEOUT)
@@ -380,7 +343,7 @@ class KafkaConnector(phantom.BaseConnector):
                         self.save_progress(consts.KAFKA_ERROR_INVALID_PORT.format(host, split_host[1]))
                         failed = True
 
-                KafkaProducer(bootstrap_servers=[host])
+                KafkaProducer(**self._client_args)
 
             except NoBrokersAvailable as e:
                 self.save_progress(consts.KAFKA_PRODUCER_NO_BROKERS_ERROR.format(host, e))
