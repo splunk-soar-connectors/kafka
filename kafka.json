@@ -8,7 +8,7 @@
     "license": "Copyright (c) Phantom Cyber Corporation 2017-2018",
     "main_module": "kafka_connector.pyc",
     "app_version": "1.2.0",
-    "utctime_updated": "2017-12-19T23:41:50.000000Z",
+    "utctime_updated": "2018-03-12T23:53:26.000000Z",
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
