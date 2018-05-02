@@ -1,8 +1,0 @@
-[submodule "wheels/gssapi"]
-    path = wheels/gssapi
-    url = ssh://git@prod-bb-1.phantom.local:7999/per/gssapi.git
-    ignore = dirty
-[submodule "wheels/kafka"]
-    path = wheels/kafka
-    url = ssh://git@prod-bb-1.phantom.local:7999/per/kafka-python.git
-    ignore = dirty
