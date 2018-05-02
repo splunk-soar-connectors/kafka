@@ -4,15 +4,15 @@
     "description": "This app implements ingesting and sending data on the Apache Kafka messaging system",
     "publisher": "Phantom",
     "package_name": "phantom_kafka",
-    "type": "generic",
-    "license": "Copyright (c) Phantom Cyber Corporation 2017-2018",
+    "type": "devops",
+    "license": "Copyright © 2017-2018 Splunk Inc.",
     "main_module": "kafka_connector.pyc",
     "app_version": "1.2.0",
     "utctime_updated": "2018-03-12T23:53:26.000000Z",
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
-    "min_phantom_version": "3.0.251",
+    "min_phantom_version": "3.0.284",
     "logo": "logo_apache.svg",
     "logo_dark": "logo_apache_dark.svg",
     "pip_dependencies": {
@@ -44,23 +44,9 @@
             "required": true,
             "order": 1
         },
-        "use_kerberos": {
-            "data_type": "boolean",
-            "description": "Use Kerberos auth",
-            "required": false,
-            "default": false,
-            "order": 2
-        },
-        "use_ssl": {
-            "data_type": "boolean",
-            "description": "Use SSL",
-            "required": false,
-            "default": false,
-            "order": 3
-        },
         "first_run_max_messages": {
             "data_type": "numeric",
-            "order": 4,
+            "order": 2,
             "description": "Maximum messages to poll first time",
             "default": 10000,
             "required": true
@@ -68,14 +54,14 @@
         "max_messages": {
             "data_type": "numeric",
             "description": "Maximum messages for scheduled polling",
-            "order": 5,
+            "order": 3,
             "default": 1000,
             "required": true
         },
         "message_parser": {
             "data_type": "file",
             "description": "Python file containing a message parsing method",
-            "order": 6,
+            "order": 4,
             "required": false
         },
         "read_from_beginning": {
@@ -83,8 +69,41 @@
             "description": "Start ingesting from beginning of topic",
             "required": true,
             "default": false,
+            "order": 5
+        },
+        "use_kerberos": {
+            "data_type": "boolean",
+            "description": "Use Kerberos auth",
+            "required": false,
+            "default": false,
+            "order": 6
+        },
+        "use_ssl": {
+            "data_type": "boolean",
+            "description": "Use SSL",
+            "required": false,
+            "default": false,
             "order": 7
+        },
+        "cert_file": {
+            "data_type": "string",
+            "description": "Path to SSL certificate file",
+            "required": false,
+            "order": 8
+        },
+        "key_file": {
+            "data_type": "string",
+            "description": "Path to SSL key file",
+            "required": false,
+            "order": 9
+        },
+        "ca_cert": {
+            "data_type": "string",
+            "description": "Path to CA certificate file",
+            "required": false,
+            "order": 10
         }
+
     },
     "actions": [
         {

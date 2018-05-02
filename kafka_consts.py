@@ -1,15 +1,10 @@
 # --
 # File: kafka_consts.py
 #
-# Copyright (c) Phantom Cyber Corporation, 2017-2018
+# Copyright © 2017-2018 Splunk Inc.
 #
-# This unpublished material is proprietary to Phantom Cyber.
-# All rights reserved. The methods and
-# techniques described herein are considered trade secrets
-# and/or confidential. Reproduction or distribution, in whole
-# or in part, is forbidden except by express written permission
-# of Phantom Cyber.
-#
+# SPLUNK CONFIDENTIAL – Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
 # --
 
 KAFKA_PRODUCER_CREATE_ERROR = "Could not connect Kafka producer to Kafka server: {0}"
@@ -40,6 +35,7 @@ KAFKA_ERROR_TIMEOUT = "There was an issue sending data to Kafka - sending timed 
 KAFKA_ERROR_INVALID_PORT = "Could not connect to Kafka on {0} due to:\nInvalid port number: {1}"
 KAFKA_ERROR_EMPTY_LIST = "Got an empty list as message to send. To send an empty list, try '[[]]'"
 KAFKA_ERROR_PARSER_ARGS = "{0}: parse_messages() should take exactly 2 arguments, takes {1} instead"
+KAFKA_ERROR_SSL_CONFIG = "To use SSL, at least one of cert_file, key_file, or ca_cert asset configuration parameters must be filled out"
 
 KAFKA_TEST_CONNECTIVITY_FAILED = "Test Connectivity Failed"
 KAFKA_TEST_CONNECTIVITY_PASSED = "Test Connectivity Passed"
