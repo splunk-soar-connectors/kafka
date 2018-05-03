@@ -5,7 +5,7 @@
     "publisher": "Phantom",
     "package_name": "phantom_kafka",
     "type": "devops",
-    "license": "Copyright © 2017-2018 Splunk Inc.",
+    "license": "Copyright (c) 2017-2018 Splunk Inc.",
     "main_module": "kafka_connector.pyc",
     "app_version": "1.2.0",
     "utctime_updated": "2018-03-12T23:53:26.000000Z",
