@@ -1,15 +1,10 @@
 # --
 # File: kafka_connector.py
 #
-# Copyright (c) Phantom Cyber Corporation, 2017-2018
+# Copyright © 2017-2018 Splunk Inc.
 #
-# This unpublished material is proprietary to Phantom Cyber.
-# All rights reserved. The methods and
-# techniques described herein are considered trade secrets
-# and/or confidential. Reproduction or distribution, in whole
-# or in part, is forbidden except by express written permission
-# of Phantom Cyber.
-#
+# SPLUNK CONFIDENTIAL – Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
 # --
 
 # Phantom App imports
@@ -27,6 +22,13 @@ import simplejson as json
 
 from kafka import KafkaProducer, KafkaConsumer, TopicPartition  # pylint: disable=E0611
 from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
+
+from cStringIO import StringIO
+import logging
+logger = logging.getLogger('kafka')
+log_stream = StringIO()
+logging.basicConfig(stream=log_stream, level=logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 KAFKA_PARSER_MODULE_NAME = "custom_parser"
 
@@ -57,9 +59,23 @@ class KafkaConnector(phantom.BaseConnector):
         self._host_list = config['hosts'].split(',')
         self._client_args = {'bootstrap_servers': self._host_list}
 
+        sec_prot = 'PLAINTEXT'
         if config.get('use_kerberos', False):
             sec_prot = 'SASL_SSL' if config.get('use_ssl') else 'SASL_PLAINTEXT'
-            self._client_args.update({'security_protocol': sec_prot, 'sasl_mechanism': 'GSSAPI'})
+            self._client_args.update({'sasl_mechanism': 'GSSAPI'})
+        if config.get('use_ssl'):
+            if 'cert_file' not in config and 'key_file' not in config and 'ca_cert' not in config:
+                return self.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SSL_CONFIG)
+            if sec_prot == 'PLAINTEXT':
+                sec_prot = 'SSL'
+            if 'cert_file' in config:
+                self._client_args.update({'ssl_certfile': config['cert_file']})
+            if 'key_file' in config:
+                self._client_args.update({'ssl_keyfile': config['key_file']})
+            if 'ca_cert' in config:
+                self._client_args.update({'ssl_cafile': config['ca_cert'], 'ssl_check_hostname': False})
+
+        self._client_args.update({'security_protocol': sec_prot})
 
         try:
             if self.get_action_identifier() == self.ACTION_ID_POST_DATA:
@@ -79,6 +95,7 @@ class KafkaConnector(phantom.BaseConnector):
     def _test_connectivity(self, param):
 
         action_result = self.add_action_result(phantom.ActionResult(dict(param)))
+        self.save_progress("Creating a temporary consumer to test connectivity")
 
         config = self.get_config()
 
@@ -87,6 +104,8 @@ class KafkaConnector(phantom.BaseConnector):
         except Exception as e:
             self.save_progress(consts.KAFKA_PRODUCER_CREATE_ERROR.format(e))
             self.save_progress(traceback.format_exc())
+            for line in log_stream.getvalue().split('\n'):
+                self.debug_print('KAFKA LOG: ' + line)
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TEST_CONNECTIVITY_FAILED)
 
         if not self._check_hosts(self._host_list):
@@ -129,7 +148,7 @@ class KafkaConnector(phantom.BaseConnector):
 
         ret_val, message, container_id = self.save_container(container)
 
-        if (not ret_val):
+        if not ret_val:
             return ret_val, message
 
         artifacts = container_dict.get('artifacts')
@@ -137,7 +156,7 @@ class KafkaConnector(phantom.BaseConnector):
         for artifact in artifacts:
             artifact['container_id'] = container_id
 
-        if (hasattr(self, 'save_artifacts')):
+        if hasattr(self, 'save_artifacts'):
             self.save_artifacts(artifacts)
         else:
             for artifact in artifacts:
@@ -199,10 +218,6 @@ class KafkaConnector(phantom.BaseConnector):
 
         if bool(re.compile(r'[^A-Za-z0-9._-]').search(topic)):
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TOPIC_INVALID_ERROR)
-
-        if not self._check_hosts(self._host_list):
-            self.save_progress(traceback.format_exc())
-            return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_PRODUCER_CREATE_ERROR)
 
         consumer = KafkaConsumer(**self._client_args)
 
