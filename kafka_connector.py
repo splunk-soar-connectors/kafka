@@ -89,7 +89,6 @@ class KafkaConnector(phantom.BaseConnector):
     def finalize(self):
 
         self.save_state(self._state)
-
         return phantom.APP_SUCCESS
 
     def _test_connectivity(self, param):
@@ -162,42 +161,19 @@ class KafkaConnector(phantom.BaseConnector):
             for artifact in artifacts:
                 self.save_artifact(artifact)
 
-    def _seek(self, param, consumer, tp):
+    def _seek(self, consumer, tp_list):
 
         config = self.get_config()
+        topic = config['topic']
 
-        if self.is_poll_now():
-
-            self.debug_print('Starting poll now')
-
-            consumer.seek_to_end()
-            max_messages = param.get('artifact_count')
-            offset = max([0, consumer.position(tp) - max_messages])
-            consumer.seek(tp, offset)
-
-            return max_messages
-
-        if (self._state.get('first_run', True)):
-
-            self._state['first_run'] = False
-
-            max_messages = int(config.get('first_run_max_messages'))
-
-            if (config.get('read_from_beginning')):
+        if self._state.get(topic) is None:
+            if config.get('read_from_beginning'):
                 consumer.seek_to_beginning()
-
-            else:
-                consumer.seek_to_end()
-                offset = max([0, consumer.position(tp) - max_messages])
-                consumer.seek(tp, offset)
-
+            self._state[topic] = {}
         else:
-
-            max_messages = int(config.get('max_messages'))
-            offset = self._state.get('last_offset', consumer.position(tp))
-            consumer.seek(tp, offset)
-
-        return max_messages
+            for tp in tp_list:
+                offset = self._state[topic].get(str(tp.partition), 0)
+                consumer.seek(tp, offset)
 
     def _on_poll(self, param):
 
@@ -222,25 +198,44 @@ class KafkaConnector(phantom.BaseConnector):
         consumer = KafkaConsumer(**self._client_args)
 
         partitions = consumer.partitions_for_topic(topic)
-        if (not partitions):
+        if not partitions:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TOPIC_NOT_FOUND)
 
-        tp = TopicPartition(topic, partitions.pop())
+        tp_list = []
+        for partition in partitions:
+            tp_list.append(TopicPartition(topic, partition))
 
-        consumer.assign([tp])
+        consumer.assign(tp_list)
 
-        max_messages = self._seek(param, consumer, tp)
+        if self.is_poll_now():
+            consumer.seek_to_beginning()
+            max_messages = int(param['artifact_count'])
+            poll_dict = consumer.poll(timeout_ms=int(config['timeout']), max_records=max_messages)
 
-        messages = consumer.poll(timeout_ms=1000, max_records=max_messages).get(tp)
+        else:
+            max_messages = self._seek(consumer, tp_list)
+            poll_dict = consumer.poll(timeout_ms=int(config['timeout']))
+
+        messages = []
+        for tp in tp_list:
+            messages += poll_dict.get(tp, [])
 
         if not self.is_poll_now():
-            self._state['last_offset'] = consumer.position(tp)
+            for tp in tp_list:
+                self._state[topic][str(tp.partition)] = consumer.position(tp)
 
-        if (not messages):
+        if not messages:
             return action_result.set_status(phantom.APP_SUCCESS, consts.KAFKA_NO_MESSAGES)
 
         parser = config.get('message_parser')
-        parser_args = dict((message.offset, message.value) for message in messages)
+        parser_args = []
+
+        for message in messages:
+            message_dict = {}
+            message_dict['partition'] = message.partition
+            message_dict['offset'] = message.offset
+            message_dict['message'] = message.value
+            parser_args.append(message_dict)
 
         if parser:
 
