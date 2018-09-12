@@ -8,7 +8,7 @@
     "license": "Copyright (c) 2017-2018 Splunk Inc.",
     "main_module": "kafka_connector.pyc",
     "app_version": "1.2.1",
-    "utctime_updated": "2018-05-07T22:43:24.000000Z",
+    "utctime_updated": "2018-09-12T22:58:42.000000Z",
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
