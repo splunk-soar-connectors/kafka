@@ -12,7 +12,7 @@
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
-    "min_phantom_version": "3.0.210",
+    "min_phantom_version": "3.5.210",
     "logo": "logo_apache.svg",
     "logo_dark": "logo_apache_dark.svg",
     "pip_dependencies": {
