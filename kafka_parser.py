@@ -1,5 +1,5 @@
 # --
-# File: kafka_connector.py
+# File: kafka_parser.py
 #
 # Copyright (c) 2017-2018 Splunk Inc.
 #
