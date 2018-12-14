@@ -23,7 +23,7 @@ without a valid written license from Splunk Inc. is PROHIBITED.
         <li><b>key_file</b> - The key used to generate <b>cert_file</b></li>
         <li><b>ca_cert</b> - The certificate of the certificate authority that signed <b>cert_file</b></li>
     </ul>
-    It is recommended that these files be placed under the <b>/opt/phantom/etc/ssl/</b> directory. These files must be readable by the <b>phantom-worker</b> user.<br><br>Note that not all of these files will be necessary for all setups. More than likely, <b>cert_file</b> will be required. However the other parameters will be needed in certain cases. For example, <b>ca_cert</b> will be needed if you set up your own certificate authoritiy.
+    It is recommended that these files be placed under the <b>&lt;PHANTOM_HOME&gt;/etc/ssl/</b> directory. These files must be readable by the <b>phantom-worker</b> user.<br><br>Note that not all of these files will be necessary for all setups. More than likely, <b>cert_file</b> will be required. However the other parameters will be needed in certain cases. For example, <b>ca_cert</b> will be needed if you set up your own certificate authoritiy.
 </p>
 <p>
     <h2>GSSAPI</h2>
