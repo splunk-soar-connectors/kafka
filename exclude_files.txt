@@ -1,4 +1,6 @@
+docker-compose.yml
+Makefile
 .git*
-kafka_connector.py
-kafka_consts.py
+*.py
+.gitlab-ci.yml
 exclude_files.txt

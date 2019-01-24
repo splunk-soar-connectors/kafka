@@ -5,10 +5,10 @@
     "publisher": "Phantom",
     "package_name": "phantom_kafka",
     "type": "devops",
-    "license": "Copyright (c) 2017-2018 Splunk Inc.",
+    "license": "Copyright (c) 2017-2019 Splunk Inc.",
     "main_module": "kafka_connector.pyc",
-    "app_version": "1.2.2",
-    "utctime_updated": "2018-10-02T18:27:22.000000Z",
+    "app_version": "1.2.7",
+    "utctime_updated": "2019-01-11T00:59:56.000000Z",
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
@@ -34,7 +34,7 @@
     "configuration": {
         "hosts": {
             "data_type": "string",
-            "description": "Hosts in cluster (comma separated e.g. host1.com:9092,host2.org:2181,10.10.10.10:9092)",
+            "description": "Hosts in the cluster (comma separated e.g. host1.com:9092,host2.org:2181,10.10.10.10:9092)",
             "required": true,
             "order": 0
         },
@@ -62,7 +62,7 @@
         },
         "read_from_beginning": {
             "data_type": "boolean",
-            "description": "Start ingesting from beginning of topic",
+            "description": "Start ingesting from the beginning of the topic",
             "required": true,
             "default": false,
             "order": 5
@@ -149,7 +149,7 @@
         {
             "action": "post data",
             "description": "Post data to a Kafka topic",
-            "verbose": "This action creates a short-lived Kafka Producer that will post the supplied data to the given topic, then exit.<br><br>Two types of data are supported right now: string and JSON. When sending JSON, the app will format the JSON before posting it to the Kafka server. If the JSON is a list, the app will send each element of the list in separate messages. To send a list to Kafka, add an extra set of brackets around the list.<br><br>If the <b>timeout</b> parameter is set to 0 (which is the default), the app will not wait for the Kafka server to acknowledge receipt of the message. In such scenario, the action will not fill the <b>action_result.data.*</b> data paths in the result.",
+            "verbose": "This action creates a short-lived Kafka Producer that will post the supplied data to the given topic, then exit.<br><br>Two types of data are supported right now: string and JSON. When sending JSON, the app will format the JSON before posting it to the Kafka server. If the JSON is a list, the app will send each element of the list in separate messages. To send a list to Kafka, add an extra set of brackets around the list.<br><br>If the <b>timeout</b> parameter is set to 0 (which is the default), the app will not wait for the Kafka server to acknowledge receipt of the message. In such a scenario, the action will not fill the <b>action_result.data.*</b> data paths in the result.",
             "type": "generic",
             "identifier": "post_data",
             "read_only": false,
@@ -203,57 +203,24 @@
             },
             "output": [
                 {
-                    "data_path": "action_result.data.*.topic",
-                    "data_type": "string",
-                    "contains": [
-                        "kafka topic"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.offset",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.checksum",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.partition",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.timestamp",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.topic_partition",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.serialized_key_size",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.serialized_value_size",
-                    "data_type": "numeric"
-                },
-                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "column_name": "Status",
                     "column_order": 2
                 },
                 {
-                    "data_path": "action_result.message",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
-                },
-                {
                     "data_path": "action_result.parameter.data",
                     "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.data_type",
+                    "data_type": "string",
+                    "column_name": "Data Type",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.parameter.timeout",
+                    "data_type": "numeric"
                 },
                 {
                     "data_path": "action_result.parameter.topic",
@@ -265,14 +232,47 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.data_type",
-                    "data_type": "string",
-                    "column_name": "Data Type",
-                    "column_order": 1
+                    "data_path": "action_result.data.*.checksum",
+                    "data_type": "numeric"
                 },
                 {
-                    "data_path": "action_result.parameter.timeout",
+                    "data_path": "action_result.data.*.offset",
                     "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.partition",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.serialized_key_size",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.serialized_value_size",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.timestamp",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.topic",
+                    "data_type": "string",
+                    "contains": [
+                        "kafka topic"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.topic_partition",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
