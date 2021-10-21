@@ -1,5 +1,5 @@
 # File: kafka_connector.py
-# Copyright (c) 2017-2019 Splunk Inc.
+# Copyright (c) 2017-2021 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -21,7 +21,7 @@ import simplejson as json
 from kafka import KafkaProducer, KafkaConsumer, TopicPartition  # pylint: disable=E0611
 from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
 
-from cStringIO import StringIO
+from io import StringIO
 import logging
 logger = logging.getLogger('kafka')
 log_stream = StringIO()
@@ -96,6 +96,9 @@ class KafkaConnector(phantom.BaseConnector):
 
         config = self.get_config()
 
+        if int(config.get('timeout', 0)) < 0:
+            return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_BAD_TIMEOUT)
+
         try:
             KafkaConsumer(**self._client_args)
         except Exception as e:
@@ -120,7 +123,7 @@ class KafkaConnector(phantom.BaseConnector):
 
             try:
 
-                exec parser in message_parser.__dict__
+                exec(parser in message_parser.__dict__)
 
                 num_args = len(inspect.getargspec(message_parser.parse_messages).args)
                 if num_args != 2:
@@ -208,11 +211,11 @@ class KafkaConnector(phantom.BaseConnector):
         if self.is_poll_now():
             consumer.seek_to_beginning()
             max_messages = int(param['artifact_count'])
-            poll_dict = consumer.poll(timeout_ms=int(config['timeout']), max_records=max_messages)
+            poll_dict = consumer.poll(timeout_ms=int(config.get('timeout', 0)), max_records=max_messages)
 
         else:
             max_messages = self._seek(consumer, tp_list)
-            poll_dict = consumer.poll(timeout_ms=int(config['timeout']))
+            poll_dict = consumer.poll(timeout_ms=int(config.get('timeout', 0)))
 
         messages = []
         for tp in tp_list:
@@ -232,7 +235,7 @@ class KafkaConnector(phantom.BaseConnector):
             message_dict = {}
             message_dict['partition'] = message.partition
             message_dict['offset'] = message.offset
-            message_dict['message'] = message.value
+            message_dict['message'] = message.value.decode('utf-8')
             parser_args.append(message_dict)
 
         if parser:
@@ -243,7 +246,7 @@ class KafkaConnector(phantom.BaseConnector):
             message_parser = imp.new_module(KAFKA_PARSER_MODULE_NAME)
 
             try:
-                exec parser in message_parser.__dict__
+                exec(parser in message_parser.__dict__)
                 containers = message_parser.parse_messages(topic, parser_args)
             except Exception as e:
                 return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_MESSAGE_PARSER.format(parser_name, e))
@@ -305,6 +308,9 @@ class KafkaConnector(phantom.BaseConnector):
 
             try:
 
+                if data_type == 'string':
+                    message = bytes(message, encoding='utf8')
+
                 send = self._producer.send(topic, message)
 
                 if timeout:
@@ -326,10 +332,10 @@ class KafkaConnector(phantom.BaseConnector):
                 action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": consts.KAFKA_ERROR_TIMEOUT})
                 failed += 1
 
-            except Exception as e:
-                self.save_progress(consts.KAFKA_PRODUCER_SEND_ERROR.format(e))
-                action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": str(e)})
-                failed += 1
+            #except Exception as e:
+            #    self.save_progress(consts.KAFKA_PRODUCER_SEND_ERROR.format(e))
+            #    action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": str(e)})
+            #    failed += 1
 
         if failed:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILURES.format(failed, '' if failed == 1 else 's'))
@@ -407,7 +413,7 @@ if __name__ == '__main__':
     # pudb.set_trace()
 
     if (len(sys.argv) < 2):
-        print "No test json specified as input"
+        print("No test json specified as input")
         exit(0)
 
     with open(sys.argv[1]) as f:

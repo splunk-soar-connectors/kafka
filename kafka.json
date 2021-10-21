@@ -2,32 +2,29 @@
     "appid": "8af3097f-fa31-47fd-bf2f-42f26f2ccc7e",
     "name": "Kafka",
     "description": "This app implements ingesting and sending data on the Apache Kafka messaging system",
-    "publisher": "Phantom",
+    "publisher": "Splunk",
     "package_name": "phantom_kafka",
     "type": "devops",
-    "license": "Copyright (c) 2017-2019 Splunk Inc.",
-    "main_module": "kafka_connector.pyc",
-    "app_version": "1.2.7",
+    "license": "Copyright (c) 2017-2021 Splunk Inc.",
+    "main_module": "kafka_connector.py",
+    "app_version": "2.0.0",
     "utctime_updated": "2019-01-11T00:59:56.000000Z",
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
-    "min_phantom_version": "3.5.210",
+    "min_phantom_version": "4.9.39220",
     "logo": "logo_apache.svg",
     "logo_dark": "logo_apache_dark.svg",
+    "python_version": "3",
     "pip_dependencies": {
         "wheel": [
             {
                 "module": "kafka-python",
-                "input_file": "wheels/kafka/kafka_python-1.3.6.dev0-py2.py3-none-any.whl"
+                "input_file": "wheels/kafka/kafka_python-2.0.2-py2.py3-none-any.whl"
             },
             {
                 "module": "gssapi",
-                "input_file": "wheels/gssapi/gssapi-1.3.0-cp27-cp27mu-linux_x86_64.whl"
-            },
-            {
-                "module": "enum34",
-                "input_file": "wheels/gssapi/enum34-1.1.6-py2-none-any.whl"
+                "input_file": "wheels/gssapi/gssapi-1.6.14-cp36-cp36m-linux_x86_64.whl"
             }
         ]
     },
