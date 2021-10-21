@@ -1,8 +1,0 @@
-[submodule "wheels/kafka"]
-    path = wheels/kafka
-    url = git@cd.splunkdev.com:phantom-external/kafka-python.git
-    ignore = dirty
-[submodule "wheels/gssapi"]
-    path = wheels/gssapi
-    url = git@cd.splunkdev.com:phantom-external/gssapi.git
-    ignore = dirty
