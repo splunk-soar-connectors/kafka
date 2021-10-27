@@ -210,7 +210,7 @@ class KafkaConnector(phantom.BaseConnector):
 
         if self.is_poll_now():
             consumer.seek_to_beginning()
-            max_messages = int(param['artifact_count'])
+            max_messages = int(param.get('artifact_count', 0))
             poll_dict = consumer.poll(timeout_ms=int(config.get('timeout', 0)), max_records=max_messages)
 
         else:
@@ -332,10 +332,10 @@ class KafkaConnector(phantom.BaseConnector):
                 action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": consts.KAFKA_ERROR_TIMEOUT})
                 failed += 1
 
-            #except Exception as e:
-            #    self.save_progress(consts.KAFKA_PRODUCER_SEND_ERROR.format(e))
-            #    action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": str(e)})
-            #    failed += 1
+            except Exception as e:
+                self.save_progress(consts.KAFKA_PRODUCER_SEND_ERROR.format(e))
+                action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": str(e)})
+                failed += 1
 
         if failed:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILURES.format(failed, '' if failed == 1 else 's'))
@@ -409,21 +409,53 @@ class KafkaConnector(phantom.BaseConnector):
 if __name__ == '__main__':
 
     import sys
-    # import pudb
-    # pudb.set_trace()
+    import pudb
+    import argparse
+    import requests
+    pudb.set_trace()
+
+    argparser = argparse.ArgumentParser()
+
+    argparser.add_argument('input_test_json', help='Input Test JSON file')
+    argparser.add_argument('-u', '--username', help='username', required=False)
+    argparser.add_argument('-p', '--password', help='password', required=False)
+
+    args = argparser.parse_args()
+    session_id = None
+
+    if (args.username and args.password):
+        login_url = phantom.BaseConnector._get_phantom_base_url() + "login"
+        try:
+            print("Accessing the Login page")
+            r = requests.get(login_url, verify=False)
+            csrftoken = r.cookies['csrftoken']
+            data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
+            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
+
+            print("Logging into Platform to get the session id")
+            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
+            session_id = r2.cookies['sessionid']
+
+        except Exception as e:
+            print(("Unable to get session id from the platform. Error: {0}".format(str(e))))
+            exit(1)
 
     if (len(sys.argv) < 2):
         print("No test json specified as input")
         exit(0)
 
-    with open(sys.argv[1]) as f:
+    with open(args.input_test_json) as f:
         in_json = f.read()
         in_json = json.loads(in_json)
         print(json.dumps(in_json, indent=4))
 
         connector = KafkaConnector()
         connector.print_progress_message = True
+
+        if (session_id is not None):
+            in_json['user_session_token'] = session_id
+
         ret_val = connector._handle_action(json.dumps(in_json), None)
-        print (json.dumps(json.loads(ret_val), indent=4))
+        print(json.dumps(json.loads(ret_val), indent=4))
 
     exit(0)
