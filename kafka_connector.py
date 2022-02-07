@@ -15,23 +15,22 @@
 #
 #
 # Phantom App imports
+import imp
+import inspect
+import logging
+import re
+import traceback
+from io import StringIO
+
 import phantom.app as phantom
+import simplejson as json
 
 # Imports local to this App
 import kafka_consts as consts
+from kafka import KafkaConsumer, KafkaProducer, TopicPartition  # pylint: disable=E0611
+from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
 from kafka_parser import parse_messages
 
-import re
-import imp
-import inspect
-import traceback
-import simplejson as json
-
-from kafka import KafkaProducer, KafkaConsumer, TopicPartition  # pylint: disable=E0611
-from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
-
-from io import StringIO
-import logging
 logger = logging.getLogger('kafka')
 log_stream = StringIO()
 logging.basicConfig(stream=log_stream, level=logging.DEBUG)
@@ -290,7 +289,8 @@ class KafkaConnector(phantom.BaseConnector):
 
         if data_type == 'JSON':
 
-            self._producer.config['value_serializer'] = lambda x: json.dumps(x, indent=4, separators=(',', ': '), ensure_ascii=False).encode('utf-8')
+            self._producer.config['value_serializer'] = \
+                lambda x: json.dumps(x, indent=4, separators=(',', ': '), ensure_ascii=False).encode('utf-8')
 
             try:
                 data = json.loads(data)
@@ -417,9 +417,10 @@ class KafkaConnector(phantom.BaseConnector):
 
 if __name__ == '__main__':
 
-    import sys
-    import pudb
     import argparse
+    import sys
+
+    import pudb
     import requests
     pudb.set_trace()
 
