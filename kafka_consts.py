@@ -12,6 +12,8 @@
 # the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
+DEFAULT_TIMEOUT = 30
+
 KAFKA_PRODUCER_CREATE_ERROR = "Could not connect Kafka producer to Kafka server: {0}"
 KAFKA_PRODUCER_SEND_ERROR = "Kafka Producer failed to send message to Kafka server: {0}"
 KAFKA_PRODUCER_NO_BROKERS_ERROR = "Could not connect to Kafka on {0} due to:\n" \
