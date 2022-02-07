@@ -13,6 +13,7 @@
     "product_name": "Kafka",
     "product_version_regex": ".*",
     "min_phantom_version": "4.10.0.40961",
+    "fips_compliant": true,
     "logo": "logo_apache.svg",
     "logo_dark": "logo_apache_dark.svg",
     "python_version": "3",
