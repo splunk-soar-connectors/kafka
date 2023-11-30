@@ -7,7 +7,7 @@
     "type": "devops",
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
     "main_module": "kafka_connector.py",
-    "app_version": "2.0.6",
+    "app_version": "2.0.7",
     "utctime_updated": "2022-02-07T22:37:15.000000Z",
     "product_vendor": "Apache",
     "product_name": "Kafka",
@@ -20,14 +20,6 @@
     "pip_dependencies": {
         "wheel": [
             {
-                "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
-            },
-            {
-                "module": "chardet",
-                "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
-            },
-            {
                 "module": "decorator",
                 "input_file": "wheels/py3/decorator-5.1.1-py3-none-any.whl"
             },
@@ -36,24 +28,12 @@
                 "input_file": "wheels/py36/gssapi-1.6.14-cp36-cp36m-linux_x86_64.whl"
             },
             {
-                "module": "idna",
-                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
-            },
-            {
                 "module": "kafka_python",
                 "input_file": "wheels/shared/kafka_python-2.0.2-py2.py3-none-any.whl"
             },
             {
-                "module": "requests",
-                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
-            },
-            {
                 "module": "simplejson",
                 "input_file": "wheels/py36/simplejson-3.17.2-cp36-cp36m-manylinux2010_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
-            },
-            {
-                "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.8-py2.py3-none-any.whl"
             }
         ]
     },
@@ -314,14 +294,6 @@
     "pip39_dependencies": {
         "wheel": [
             {
-                "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
-            },
-            {
-                "module": "chardet",
-                "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
-            },
-            {
                 "module": "decorator",
                 "input_file": "wheels/py3/decorator-5.1.1-py3-none-any.whl"
             },
@@ -330,24 +302,12 @@
                 "input_file": "wheels/py39/gssapi-1.6.14-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
             },
             {
-                "module": "idna",
-                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
-            },
-            {
                 "module": "kafka_python",
                 "input_file": "wheels/shared/kafka_python-2.0.2-py2.py3-none-any.whl"
             },
             {
-                "module": "requests",
-                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
-            },
-            {
                 "module": "simplejson",
                 "input_file": "wheels/py39/simplejson-3.17.2-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
-            },
-            {
-                "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.8-py2.py3-none-any.whl"
             }
         ]
     }
