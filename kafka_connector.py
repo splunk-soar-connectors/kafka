@@ -347,7 +347,7 @@ class KafkaConnector(phantom.BaseConnector):
                 failed += 1
 
         if failed:
-            return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILURES.format(failed, '' if failed == 1 else 's'))
+            return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILED.format(failed, '' if failed == 1 else 's'))
 
         return action_result.set_status(phantom.APP_SUCCESS, consts.KAFKA_SUCCESS_SEND)
 
