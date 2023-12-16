@@ -1,5 +1,5 @@
 Splunk SOAR Kafka
-Copyright (c) 2017-2022 Splunk Inc.
+Copyright (c) 2017-2023 Splunk Inc.
 
 Third-party Software Attributions:
 
@@ -7,11 +7,6 @@ Library: kafka-python
 Version: 2.0.2
 License: Apache 2.0
 Copyright 2015 David Arthur
-
-Library: requests
-Version: 2.25.0
-License: Apache 2.0
-Kenneth Reitz
 
 Library: simplejson
 Version: 3.17.2
