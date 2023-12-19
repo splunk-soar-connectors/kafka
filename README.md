@@ -2,16 +2,16 @@
 # Kafka
 
 Publisher: Splunk  
-Connector Version: 2\.0\.6  
+Connector Version: 2.0.7  
 Product Vendor: Apache  
 Product Name: Kafka  
-Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 5\.1\.0  
+Product Version Supported (regex): ".\*"  
+Minimum Product Version: 5.1.0  
 
 This app implements ingesting and sending data on the Apache Kafka messaging system
 
 [comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2017-2022 Splunk Inc."
+[comment]: # "  Copyright (c) 2017-2023 Splunk Inc."
 [comment]: # ""
 [comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
 [comment]: # "you may not use this file except in compliance with the License."
@@ -61,16 +61,16 @@ The below configuration variables are required for this Connector to operate.  T
 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
-**hosts** |  required  | string | Hosts in the cluster \(comma separated e\.g\. host1\.com\:9092,host2\.org\:2181,10\.10\.10\.10\:9092\)
+**hosts** |  required  | string | Hosts in the cluster (comma separated e.g. host1.com:9092,host2.org:2181,10.10.10.10:9092)
 **topic** |  required  | string | Topic to subscribe to for ingestion
-**message\_parser** |  optional  | file | Python file containing a message parsing method
-**timeout** |  required  | numeric | How long to poll for messages each interval \(ms\)
-**read\_from\_beginning** |  required  | boolean | Start ingesting from the beginning of the topic
-**use\_kerberos** |  optional  | boolean | Use Kerberos auth
-**use\_ssl** |  optional  | boolean | Use SSL
-**cert\_file** |  optional  | string | Path to SSL certificate file
-**key\_file** |  optional  | string | Path to SSL key file
-**ca\_cert** |  optional  | string | Path to CA certificate file
+**message_parser** |  optional  | file | Python file containing a message parsing method
+**timeout** |  required  | numeric | How long to poll for messages each interval (ms)
+**read_from_beginning** |  required  | boolean | Start ingesting from the beginning of the topic
+**use_kerberos** |  optional  | boolean | Use Kerberos auth
+**use_ssl** |  optional  | boolean | Use SSL
+**cert_file** |  optional  | string | Path to SSL certificate file
+**key_file** |  optional  | string | Path to SSL key file
+**ca_cert** |  optional  | string | Path to CA certificate file
 
 ### Supported Actions  
 [test connectivity](#action-test-connectivity) - Checks connectivity with configured hosts  
@@ -95,16 +95,16 @@ Ingest messages from Kafka
 Type: **ingest**  
 Read only: **False**
 
-Basic configuration parameters for this action are available in asset configuration\.<br><br>If <b>read\_from\_beginning</b> is set to true, the first poll will begin reading messages from the start of a topic, ingesting as many messages as can be ingested within the time set by the <b>timeout</b> asset configuration parameter\. For a <b>poll now</b>, the app will ingest as many messages as specified by <b>artifact\_count</b>, starting at the beginning of the topic\.<br><br>This app creates containers and artifacts using the same format as the REST endpoint\. It uses a message parsing method to decide how the containers and artifacts will look\. A custom message parsing script can be uploaded during asset configuration to change how Kafka messages are ingested as containers and artifacts\. There are three requirements for this script\:<ul><li>It must contain a method called <b>parse\_messages</b>\. This is the method that will be called during the poll\.</li><li>The method must accept exactly two arguments\:<ul><li>First argument\: A string which will be the name of the topic\.</li><li>Second argument\: A list of dictionaries, with a dictionary containing data for each ingested message\. Each dictionary will have 3 fields\: <b>message</b>, <b>offset</b>, and <b>partition</b>\.</li></ul><li>The method must return a list of dictionaries\. Each dictionary must contain two fields\:</li><ul><li><b>container</b> \- a dictionary formatted as the body of a REST call to the Phantom /rest/container endpoint\.</li><li><b>artifacts</b> \- a list of dictionaries, with each dictionary formatted as the body of a REST call to the Phantom /rest/artifact endpoint\.</li></ul></ul>Refer to the <b>REST API Documentation</b> section of the Phantom docs for more information on what can be included in the dictionaries used to create the containers and artifacts during ingestion\.<br><br>The default message parsing script is called <b>kafka\_parser\.py</b> and can be found in the Kafka app directory\. It contains\:<br><br><pre>from datetime import datetime<br>time\_format = '%Y\-%m\-%d %H\:%M\:%S'<br><br><br>def parse\_messages\(topic, messages\)\:<br><br>    ret\_json = \{\}<br>    container\_json = \{\}<br>    artifact\_list = \[\]<br><br>    ret\_json\['container'\] = container\_json<br>    ret\_json\['artifacts'\] = artifact\_list<br><br>    name = 'Messages ingested from \{0\} at \{1\}'\.format\(topic, datetime\.now\(\)\.strftime\(time\_format\)\)<br><br>    container\_json\['name'\] = name<br>    container\_json\['description'\] = 'Some messages from Kafka'<br>    container\_json\['run\_automation'\] = False<br><br>    count = 0 <br>    num\_artifacts = len\(messages\)<br>    for message in messages\:<br><br>        artifact\_json = \{\}<br>        artifact\_list\.append\(artifact\_json\)<br><br>        artifact\_json\['source\_data\_identifier'\] = '\{0\}\:\{1\}'\.format\(message\['partition'\], message\['offset'\]\)<br>        artifact\_json\['cef'\] = \{'message'\: message\['message'\]\}<br>        artifact\_json\['name'\] = message\['message'\]\[\:100\]<br><br>        if count < num\_artifacts \- 1\:<br>            artifact\_json\['run\_automation'\] = False<br><br>        count \+= 1<br><br>    return \[ret\_json\]</pre><br> This script will create one container per poll, and create one artifact in that container per message ingested\. The source data identifier for the artifacts will have the format <code>&lt;partition&gt;\:&lt;offset&gt;</code> for each message\. The data from the message will be put in the <b>message</b> CEF field\. Any formatting of the data will not be preserved\. Supply a custom parser to format the data as needed\.
+Basic configuration parameters for this action are available in asset configuration.<br><br>If <b>read_from_beginning</b> is set to true, the first poll will begin reading messages from the start of a topic, ingesting as many messages as can be ingested within the time set by the <b>timeout</b> asset configuration parameter. For a <b>poll now</b>, the app will ingest as many messages as specified by <b>artifact_count</b>, starting at the beginning of the topic.<br><br>This app creates containers and artifacts using the same format as the REST endpoint. It uses a message parsing method to decide how the containers and artifacts will look. A custom message parsing script can be uploaded during asset configuration to change how Kafka messages are ingested as containers and artifacts. There are three requirements for this script:<ul><li>It must contain a method called <b>parse_messages</b>. This is the method that will be called during the poll.</li><li>The method must accept exactly two arguments:<ul><li>First argument: A string which will be the name of the topic.</li><li>Second argument: A list of dictionaries, with a dictionary containing data for each ingested message. Each dictionary will have 3 fields: <b>message</b>, <b>offset</b>, and <b>partition</b>.</li></ul><li>The method must return a list of dictionaries. Each dictionary must contain two fields:</li><ul><li><b>container</b> - a dictionary formatted as the body of a REST call to the Phantom /rest/container endpoint.</li><li><b>artifacts</b> - a list of dictionaries, with each dictionary formatted as the body of a REST call to the Phantom /rest/artifact endpoint.</li></ul></ul>Refer to the <b>REST API Documentation</b> section of the Phantom docs for more information on what can be included in the dictionaries used to create the containers and artifacts during ingestion.<br><br>The default message parsing script is called <b>kafka_parser.py</b> and can be found in the Kafka app directory. It contains:<br><br><pre>from datetime import datetime<br>time_format = '%Y-%m-%d %H:%M:%S'<br><br><br>def parse_messages(topic, messages):<br><br>    ret_json = {}<br>    container_json = {}<br>    artifact_list = []<br><br>    ret_json['container'] = container_json<br>    ret_json['artifacts'] = artifact_list<br><br>    name = 'Messages ingested from {0} at {1}'.format(topic, datetime.now().strftime(time_format))<br><br>    container_json['name'] = name<br>    container_json['description'] = 'Some messages from Kafka'<br>    container_json['run_automation'] = False<br><br>    count = 0 <br>    num_artifacts = len(messages)<br>    for message in messages:<br><br>        artifact_json = {}<br>        artifact_list.append(artifact_json)<br><br>        artifact_json['source_data_identifier'] = '{0}:{1}'.format(message['partition'], message['offset'])<br>        artifact_json['cef'] = {'message': message['message']}<br>        artifact_json['name'] = message['message'][:100]<br><br>        if count < num_artifacts - 1:<br>            artifact_json['run_automation'] = False<br><br>        count += 1<br><br>    return [ret_json]</pre><br> This script will create one container per poll, and create one artifact in that container per message ingested. The source data identifier for the artifacts will have the format <code>&lt;partition&gt;:&lt;offset&gt;</code> for each message. The data from the message will be put in the <b>message</b> CEF field. Any formatting of the data will not be preserved. Supply a custom parser to format the data as needed.
 
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**start\_time** |  optional  | Parameter ignored in this app | numeric | 
-**end\_time** |  optional  | Parameter ignored in this app | numeric | 
-**container\_id** |  optional  | Parameter ignored in this app | string | 
-**container\_count** |  optional  | Parameter ignored in this app | numeric | 
-**artifact\_count** |  optional  | Maximum number of messages to ingest during poll now | numeric | 
+**start_time** |  optional  | Parameter ignored in this app | numeric | 
+**end_time** |  optional  | Parameter ignored in this app | numeric | 
+**container_id** |  optional  | Parameter ignored in this app | string | 
+**container_count** |  optional  | Parameter ignored in this app | numeric | 
+**artifact_count** |  optional  | Maximum number of messages to ingest during poll now | numeric | 
 
 #### Action Output
 No Output  
@@ -115,33 +115,33 @@ Post data to a Kafka topic
 Type: **generic**  
 Read only: **False**
 
-This action creates a short\-lived Kafka Producer that will post the supplied data to the given topic, then exit\.<br><br>Two types of data are supported right now\: string and JSON\. When sending JSON, the app will format the JSON before posting it to the Kafka server\. If the JSON is a list, the app will send each element of the list in separate messages\. To send a list to Kafka, add an extra set of brackets around the list\.<br><br>If the <b>timeout</b> parameter is set to 0 \(which is the default\), the app will not wait for the Kafka server to acknowledge receipt of the message\. In such a scenario, the action will not fill the <b>action\_result\.data\.\*</b> data paths in the result\.
+This action creates a short-lived Kafka Producer that will post the supplied data to the given topic, then exit.<br><br>Two types of data are supported right now: string and JSON. When sending JSON, the app will format the JSON before posting it to the Kafka server. If the JSON is a list, the app will send each element of the list in separate messages. To send a list to Kafka, add an extra set of brackets around the list.<br><br>If the <b>timeout</b> parameter is set to 0 (which is the default), the app will not wait for the Kafka server to acknowledge receipt of the message. In such a scenario, the action will not fill the <b>action_result.data.\*</b> data paths in the result.
 
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**data\_type** |  required  | The type of the data being posted \(can be string or JSON\) | string | 
+**data_type** |  required  | The type of the data being posted (can be string or JSON) | string | 
 **data** |  required  | The data to post | string | 
 **topic** |  required  | The topic to post the data to | string |  `kafka topic` 
-**timeout** |  optional  | How long \(in seconds\) to wait for message to be acknowledged by server | numeric | 
+**timeout** |  optional  | How long (in seconds) to wait for message to be acknowledged by server | numeric | 
 
 #### Action Output
-DATA PATH | TYPE | CONTAINS
---------- | ---- | --------
-action\_result\.status | string | 
-action\_result\.parameter\.data | string | 
-action\_result\.parameter\.data\_type | string | 
-action\_result\.parameter\.timeout | numeric | 
-action\_result\.parameter\.topic | string |  `kafka topic` 
-action\_result\.data\.\*\.checksum | numeric | 
-action\_result\.data\.\*\.offset | numeric | 
-action\_result\.data\.\*\.partition | numeric | 
-action\_result\.data\.\*\.serialized\_key\_size | numeric | 
-action\_result\.data\.\*\.serialized\_value\_size | numeric | 
-action\_result\.data\.\*\.timestamp | numeric | 
-action\_result\.data\.\*\.topic | string |  `kafka topic` 
-action\_result\.data\.\*\.topic\_partition | numeric | 
-action\_result\.summary | string | 
-action\_result\.message | string | 
-summary\.total\_objects | numeric | 
-summary\.total\_objects\_successful | numeric | 
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |  
+action_result.parameter.data | string |  |  
+action_result.parameter.data_type | string |  |  
+action_result.parameter.timeout | numeric |  |  
+action_result.parameter.topic | string |  `kafka topic`  |  
+action_result.data.\*.checksum | numeric |  |  
+action_result.data.\*.offset | numeric |  |  
+action_result.data.\*.partition | numeric |  |  
+action_result.data.\*.serialized_key_size | numeric |  |  
+action_result.data.\*.serialized_value_size | numeric |  |  
+action_result.data.\*.timestamp | numeric |  |  
+action_result.data.\*.topic | string |  `kafka topic`  |  
+action_result.data.\*.topic_partition | numeric |  |  
+action_result.summary | string |  |  
+action_result.message | string |  |  
+summary.total_objects | numeric |  |  
+summary.total_objects_successful | numeric |  |  

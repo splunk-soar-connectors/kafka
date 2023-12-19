@@ -1,6 +1,6 @@
 # File: kafka_connector.py
 #
-# Copyright (c) 2017-2022 Splunk Inc.
+# Copyright (c) 2017-2023 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -347,7 +347,7 @@ class KafkaConnector(phantom.BaseConnector):
                 failed += 1
 
         if failed:
-            return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILURES.format(failed, '' if failed == 1 else 's'))
+            return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILED.format(failed, '' if failed == 1 else 's'))
 
         return action_result.set_status(phantom.APP_SUCCESS, consts.KAFKA_SUCCESS_SEND)
 
@@ -377,7 +377,7 @@ class KafkaConnector(phantom.BaseConnector):
                 failed = True
 
             except Exception as e:
-                self.save_progress(consts.KAFKA_ERROR_COULD_NOT_CONNECT.format(host, e))
+                self.save_progress(consts.KAFKA_ERROR_CONNECTIVITY_FAILED.format(host, e))
                 failed = True
 
         return not failed
