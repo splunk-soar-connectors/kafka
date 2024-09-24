@@ -16,14 +16,16 @@ DEFAULT_TIMEOUT = 30
 
 KAFKA_PRODUCER_CREATE_ERROR = "Could not connect Kafka producer to Kafka server: {0}"
 KAFKA_PRODUCER_SEND_ERROR = "Kafka Producer failed to send message to Kafka server: {0}"
-KAFKA_PRODUCER_NO_BROKERS_ERROR = "Could not connect to Kafka on {0} due to:\n" \
-                                  "{1}. This is usually caused by the Kafka server not running or the port being closed"
+KAFKA_PRODUCER_NO_BROKERS_ERROR = (
+    "Could not connect to Kafka on {0} due to:\n" "{1}. This is usually caused by the Kafka server not running or the port being closed"
+)
 
 KAFKA_WARNING_SOME_HOSTS_FAILED = "Connection to Kafka cluster successful, but connection to some hosts failed. See above."
 
 KAFKA_TOPIC_NOT_FOUND = "The specified topic could not be found on the Kafka server"
-KAFKA_TOPIC_INVALID_ERROR = "The specified topic contains invalid characters. " \
-                            "Topics can only contain numbers, letters, periods, hyphens, and underscores."
+KAFKA_TOPIC_INVALID_ERROR = (
+    "The specified topic contains invalid characters. " "Topics can only contain numbers, letters, periods, hyphens, and underscores."
+)
 
 KAFKA_NO_MESSAGES = "No messages to ingest, taking no action"
 KAFKA_USING_PARSER = "Using custom message parsing script - {0}"
