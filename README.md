@@ -6,7 +6,7 @@ Connector Version: 2.0.7
 Product Vendor: Apache  
 Product Name: Kafka  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.1.1  
+Minimum Product Version: 6.2.1  
 
 This app implements ingesting and sending data on the Apache Kafka messaging system
 
