@@ -2,7 +2,7 @@
 # Kafka
 
 Publisher: Splunk  
-Connector Version: 2.0.7  
+Connector Version: 2.0.8  
 Product Vendor: Apache  
 Product Name: Kafka  
 Product Version Supported (regex): ".\*"  
