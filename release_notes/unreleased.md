@@ -1,3 +1,3 @@
 **Unreleased**
 
-Gssapi has been updated.
+* Gssapi has been updated.
