@@ -1,6 +1,6 @@
 # File: kafka_connector.py
 #
-# Copyright (c) 2017-2023 Splunk Inc.
+# Copyright (c) 2017-2024 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ from kafka import KafkaConsumer, KafkaProducer, TopicPartition  # pylint: disabl
 from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
 from kafka_parser import parse_messages
 
-logger = logging.getLogger('kafka')
+logger = logging.getLogger("kafka")
 log_stream = StringIO()
 logging.basicConfig(stream=log_stream, level=logging.DEBUG)
 logger.setLevel(logging.DEBUG)
@@ -62,26 +62,26 @@ class KafkaConnector(phantom.BaseConnector):
 
         config = self.get_config()
 
-        self._host_list = config['hosts'].split(',')
-        self._client_args = {'bootstrap_servers': self._host_list}
+        self._host_list = config["hosts"].split(",")
+        self._client_args = {"bootstrap_servers": self._host_list}
 
-        sec_prot = 'PLAINTEXT'
-        if config.get('use_kerberos', False):
-            sec_prot = 'SASL_SSL' if config.get('use_ssl') else 'SASL_PLAINTEXT'
-            self._client_args.update({'sasl_mechanism': 'GSSAPI'})
-        if config.get('use_ssl'):
-            if 'cert_file' not in config and 'key_file' not in config and 'ca_cert' not in config:
+        sec_prot = "PLAINTEXT"
+        if config.get("use_kerberos", False):
+            sec_prot = "SASL_SSL" if config.get("use_ssl") else "SASL_PLAINTEXT"
+            self._client_args.update({"sasl_mechanism": "GSSAPI"})
+        if config.get("use_ssl"):
+            if "cert_file" not in config and "key_file" not in config and "ca_cert" not in config:
                 return self.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SSL_CONFIG)
-            if sec_prot == 'PLAINTEXT':
-                sec_prot = 'SSL'
-            if 'cert_file' in config:
-                self._client_args.update({'ssl_certfile': config['cert_file']})
-            if 'key_file' in config:
-                self._client_args.update({'ssl_keyfile': config['key_file']})
-            if 'ca_cert' in config:
-                self._client_args.update({'ssl_cafile': config['ca_cert'], 'ssl_check_hostname': False})
+            if sec_prot == "PLAINTEXT":
+                sec_prot = "SSL"
+            if "cert_file" in config:
+                self._client_args.update({"ssl_certfile": config["cert_file"]})
+            if "key_file" in config:
+                self._client_args.update({"ssl_keyfile": config["key_file"]})
+            if "ca_cert" in config:
+                self._client_args.update({"ssl_cafile": config["ca_cert"], "ssl_check_hostname": False})
 
-        self._client_args.update({'security_protocol': sec_prot})
+        self._client_args.update({"security_protocol": sec_prot})
 
         try:
             if self.get_action_identifier() == self.ACTION_ID_POST_DATA:
@@ -104,7 +104,7 @@ class KafkaConnector(phantom.BaseConnector):
 
         config = self.get_config()
 
-        if int(config.get('timeout', 0)) < 0:
+        if int(config.get("timeout", 0)) < 0:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_BAD_TIMEOUT)
 
         try:
@@ -112,18 +112,18 @@ class KafkaConnector(phantom.BaseConnector):
         except Exception as e:
             self.save_progress(consts.KAFKA_PRODUCER_CREATE_ERROR.format(e))
             self.save_progress(traceback.format_exc())
-            for line in log_stream.getvalue().split('\n'):
-                self.debug_print('KAFKA LOG: ' + line)
+            for line in log_stream.getvalue().split("\n"):
+                self.debug_print("KAFKA LOG: " + line)
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TEST_CONNECTIVITY_FAILED)
 
         if not self._check_hosts(self._host_list):
             self.save_progress(consts.KAFKA_WARNING_SOME_HOSTS_FAILED)
 
-        parser = config.get('message_parser')
+        parser = config.get("message_parser")
 
         if parser:
 
-            parser_name = config['message_parser__filename']
+            parser_name = config["message_parser__filename"]
 
             self.save_progress(consts.KAFKA_TEST_PARSER.format(parser_name))
 
@@ -137,7 +137,7 @@ class KafkaConnector(phantom.BaseConnector):
                 if num_args != 2:
                     return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_PARSER_ARGS.format(parser_name, num_args))
 
-                message_parser.parse_messages(config['topic'], consts.KAFKA_TEST_MESSAGES)
+                message_parser.parse_messages(config["topic"], consts.KAFKA_TEST_MESSAGES)
 
             except Exception as e:
                 return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_MESSAGE_PARSER.format(parser_name, e))
@@ -150,21 +150,21 @@ class KafkaConnector(phantom.BaseConnector):
 
         config = self.get_config()
 
-        container = container_dict.get('container')
+        container = container_dict.get("container")
 
-        container['label'] = config.get('ingest', {}).get('container_label')
+        container["label"] = config.get("ingest", {}).get("container_label")
 
         ret_val, message, container_id = self.save_container(container)
 
         if not ret_val:
             return ret_val, message
 
-        artifacts = container_dict.get('artifacts')
+        artifacts = container_dict.get("artifacts")
 
         for artifact in artifacts:
-            artifact['container_id'] = container_id
+            artifact["container_id"] = container_id
 
-        if hasattr(self, 'save_artifacts'):
+        if hasattr(self, "save_artifacts"):
             self.save_artifacts(artifacts)
         else:
             for artifact in artifacts:
@@ -173,10 +173,10 @@ class KafkaConnector(phantom.BaseConnector):
     def _seek(self, consumer, tp_list):
 
         config = self.get_config()
-        topic = config['topic']
+        topic = config["topic"]
 
         if self._state.get(topic) is None:
-            if config.get('read_from_beginning'):
+            if config.get("read_from_beginning"):
                 consumer.seek_to_beginning()
             self._state[topic] = {}
         else:
@@ -193,15 +193,15 @@ class KafkaConnector(phantom.BaseConnector):
         # Add an action result to the App Run
         action_result = self.add_action_result(phantom.ActionResult(dict(param)))
 
-        if int(param.get('container_count', 0)) <= 0:
+        if int(param.get("container_count", 0)) <= 0:
             return action_result.set_status(phantom.APP_ERROR, consts.KAKFA_ERROR_CONTAINER_COUNT)
 
-        if self.is_poll_now() and int(param.get('artifact_count', 0)) <= 0:
+        if self.is_poll_now() and int(param.get("artifact_count", 0)) <= 0:
             return action_result.set_status(phantom.APP_ERROR, consts.KAKFA_ERROR_ARTIFACT_COUNT)
 
-        topic = config.get('topic')
+        topic = config.get("topic")
 
-        if bool(re.compile(r'[^A-Za-z0-9._-]').search(topic)):
+        if bool(re.compile(r"[^A-Za-z0-9._-]").search(topic)):
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TOPIC_INVALID_ERROR)
 
         consumer = KafkaConsumer(**self._client_args)
@@ -218,12 +218,12 @@ class KafkaConnector(phantom.BaseConnector):
 
         if self.is_poll_now():
             consumer.seek_to_beginning()
-            max_messages = int(param.get('artifact_count', 0))
-            poll_dict = consumer.poll(timeout_ms=int(config.get('timeout', 0)), max_records=max_messages)
+            max_messages = int(param.get("artifact_count", 0))
+            poll_dict = consumer.poll(timeout_ms=int(config.get("timeout", 0)), max_records=max_messages)
 
         else:
             max_messages = self._seek(consumer, tp_list)
-            poll_dict = consumer.poll(timeout_ms=int(config.get('timeout', 0)))
+            poll_dict = consumer.poll(timeout_ms=int(config.get("timeout", 0)))
 
         messages = []
         for tp in tp_list:
@@ -236,19 +236,19 @@ class KafkaConnector(phantom.BaseConnector):
         if not messages:
             return action_result.set_status(phantom.APP_SUCCESS, consts.KAFKA_NO_MESSAGES)
 
-        parser = config.get('message_parser')
+        parser = config.get("message_parser")
         parser_args = []
 
         for message in messages:
             message_dict = {}
-            message_dict['partition'] = message.partition
-            message_dict['offset'] = message.offset
-            message_dict['message'] = message.value.decode('utf-8')
+            message_dict["partition"] = message.partition
+            message_dict["offset"] = message.offset
+            message_dict["message"] = message.value.decode("utf-8")
             parser_args.append(message_dict)
 
         if parser:
 
-            parser_name = config['message_parser__filename']
+            parser_name = config["message_parser__filename"]
             self.save_progress(consts.KAFKA_USING_PARSER.format(parser_name))
 
             message_parser = imp.new_module(KAFKA_PARSER_MODULE_NAME)
@@ -274,30 +274,31 @@ class KafkaConnector(phantom.BaseConnector):
         # Add an action result to the App Run
         action_result = self.add_action_result(phantom.ActionResult(dict(param)))
 
-        timeout = int(param.get('timeout', 0))
+        timeout = int(param.get("timeout", 0))
 
         if timeout < 0:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_BAD_TIMEOUT)
 
-        topic = param.get('topic')
+        topic = param.get("topic")
 
-        if bool(re.compile(r'[^A-Za-z0-9._-]').search(topic)):
+        if bool(re.compile(r"[^A-Za-z0-9._-]").search(topic)):
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_TOPIC_INVALID_ERROR)
 
-        data_type = param.get('data_type')
-        data = param.get('data')
+        data_type = param.get("data_type")
+        data = param.get("data")
 
-        if data_type == 'JSON':
+        if data_type == "JSON":
 
-            self._producer.config['value_serializer'] = \
-                lambda x: json.dumps(x, indent=4, separators=(',', ': '), ensure_ascii=False).encode('utf-8')
+            self._producer.config["value_serializer"] = lambda x: json.dumps(x, indent=4, separators=(",", ": "), ensure_ascii=False).encode(
+                "utf-8"
+            )
 
             try:
                 data = json.loads(data)
             except json.scanner.JSONDecodeError as e:
                 return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_BAD_JSON.format(e))
 
-        elif data_type == 'string':
+        elif data_type == "string":
             pass
 
         else:
@@ -317,8 +318,8 @@ class KafkaConnector(phantom.BaseConnector):
 
             try:
 
-                if data_type == 'string':
-                    message = bytes(message, encoding='utf8')
+                if data_type == "string":
+                    message = bytes(message, encoding="utf8")
 
                 send = self._producer.send(topic, message)
 
@@ -347,7 +348,7 @@ class KafkaConnector(phantom.BaseConnector):
                 failed += 1
 
         if failed:
-            return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILED.format(failed, '' if failed == 1 else 's'))
+            return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILED.format(failed, "" if failed == 1 else "s"))
 
         return action_result.set_status(phantom.APP_SUCCESS, consts.KAFKA_SUCCESS_SEND)
 
@@ -359,7 +360,7 @@ class KafkaConnector(phantom.BaseConnector):
 
             try:
 
-                split_host = host.split(':')
+                split_host = host.split(":")
 
                 if len(split_host) == 2:
                     if int(split_host[1]) < 0:
@@ -373,7 +374,7 @@ class KafkaConnector(phantom.BaseConnector):
                 failed = True
 
             except ValueError:
-                self.save_progress(consts.KAFKA_ERROR_INVALID_PORT.format(host, host.split(':')[1]))
+                self.save_progress(consts.KAFKA_ERROR_INVALID_PORT.format(host, host.split(":")[1]))
                 failed = True
 
             except Exception as e:
@@ -385,14 +386,14 @@ class KafkaConnector(phantom.BaseConnector):
     def _build_result_dict(self, data):
 
         result_dict = {}
-        result_dict['partition'] = data.partition
-        result_dict['offset'] = data.offset
-        result_dict['timestamp'] = data.timestamp
-        result_dict['topic'] = data.topic
-        result_dict['checksum'] = data.checksum
-        result_dict['serialized_key_size'] = data.serialized_key_size
-        result_dict['serialized_value_size'] = data.serialized_value_size
-        result_dict['topic_partition'] = data.topic_partition.partition
+        result_dict["partition"] = data.partition
+        result_dict["offset"] = data.offset
+        result_dict["timestamp"] = data.timestamp
+        result_dict["topic"] = data.topic
+        result_dict["checksum"] = data.checksum
+        result_dict["serialized_key_size"] = data.serialized_key_size
+        result_dict["serialized_value_size"] = data.serialized_value_size
+        result_dict["topic_partition"] = data.topic_partition.partition
 
         return result_dict
 
@@ -405,53 +406,54 @@ class KafkaConnector(phantom.BaseConnector):
 
         self.debug_print("action_id", self.get_action_identifier())
 
-        if (action_id == self.ACTION_ID_TEST_CONNECTIVITY):
+        if action_id == self.ACTION_ID_TEST_CONNECTIVITY:
             ret_val = self._test_connectivity(param)
-        if (action_id == self.ACTION_ID_POST_DATA):
+        if action_id == self.ACTION_ID_POST_DATA:
             ret_val = self._post_data(param)
-        if (action_id == self.ACTION_ID_ON_POLL):
+        if action_id == self.ACTION_ID_ON_POLL:
             ret_val = self._on_poll(param)
 
         return ret_val
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     import argparse
     import sys
 
     import pudb
     import requests
+
     pudb.set_trace()
 
     argparser = argparse.ArgumentParser()
 
-    argparser.add_argument('input_test_json', help='Input Test JSON file')
-    argparser.add_argument('-u', '--username', help='username', required=False)
-    argparser.add_argument('-p', '--password', help='password', required=False)
-    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
+    argparser.add_argument("input_test_json", help="Input Test JSON file")
+    argparser.add_argument("-u", "--username", help="username", required=False)
+    argparser.add_argument("-p", "--password", help="password", required=False)
+    argparser.add_argument("-v", "--verify", action="store_true", help="verify", required=False, default=False)
 
     args = argparser.parse_args()
     session_id = None
 
-    if (args.username and args.password):
+    if args.username and args.password:
         login_url = phantom.BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
             r = requests.get(login_url, verify=args.verify, timeout=consts.DEFAULT_TIMEOUT)
-            csrftoken = r.cookies['csrftoken']
-            data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
-            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
+            csrftoken = r.cookies["csrftoken"]
+            data = {"username": args.username, "password": args.password, "csrfmiddlewaretoken": csrftoken}
+            headers = {"Cookie": "csrftoken={0}".format(csrftoken), "Referer": login_url}
 
             print("Logging into Platform to get the session id")
             r2 = requests.post(login_url, verify=args.verify, data=data, headers=headers, timeout=consts.DEFAULT_TIMEOUT)
-            session_id = r2.cookies['sessionid']
+            session_id = r2.cookies["sessionid"]
 
         except Exception as e:
             print(("Unable to get session id from the platform. Error: {0}".format(str(e))))
             sys.exit(1)
 
-    if (len(sys.argv) < 2):
+    if len(sys.argv) < 2:
         print("No test json specified as input")
         sys.exit(0)
 
@@ -463,8 +465,8 @@ if __name__ == '__main__':
         connector = KafkaConnector()
         connector.print_progress_message = True
 
-        if (session_id is not None):
-            in_json['user_session_token'] = session_id
+        if session_id is not None:
+            in_json["user_session_token"] = session_id
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))

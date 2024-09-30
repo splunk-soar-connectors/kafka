@@ -2,11 +2,11 @@
 # Kafka
 
 Publisher: Splunk  
-Connector Version: 2.0.7  
+Connector Version: 2.0.8  
 Product Vendor: Apache  
 Product Name: Kafka  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 5.1.0  
+Minimum Product Version: 6.2.1  
 
 This app implements ingesting and sending data on the Apache Kafka messaging system
 
