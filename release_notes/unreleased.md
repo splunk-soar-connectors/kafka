@@ -1,3 +1,3 @@
 **Unreleased**
 
-* Gssapi has been updated.
+* PAPP-34734 update dependencies in requirements
