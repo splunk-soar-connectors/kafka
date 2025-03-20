@@ -1,6 +1,6 @@
 # File: kafka_connector.py
 #
-# Copyright (c) 2017-2024 Splunk Inc.
+# Copyright (c) 2017-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ from kafka import KafkaConsumer, KafkaProducer, TopicPartition  # pylint: disabl
 from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
 from kafka_parser import parse_messages
 
+
 logger = logging.getLogger("kafka")
 log_stream = StringIO()
 logging.basicConfig(stream=log_stream, level=logging.DEBUG)
@@ -41,15 +42,13 @@ KAFKA_PARSER_MODULE_NAME = "custom_parser"
 
 # Define the App Class
 class KafkaConnector(phantom.BaseConnector):
-
     ACTION_ID_TEST_CONNECTIVITY = "test_connectivity"
     ACTION_ID_POST_DATA = "post_data"
     ACTION_ID_ON_POLL = "on_poll"
 
     def __init__(self):
-
         # Call the BaseConnectors init first
-        super(KafkaConnector, self).__init__()
+        super().__init__()
 
         self._state = {}
         self._producer = None
@@ -57,7 +56,6 @@ class KafkaConnector(phantom.BaseConnector):
         self._client_args = None
 
     def initialize(self):
-
         self._state = self.load_state()
 
         config = self.get_config()
@@ -93,12 +91,10 @@ class KafkaConnector(phantom.BaseConnector):
         return phantom.APP_SUCCESS
 
     def finalize(self):
-
         self.save_state(self._state)
         return phantom.APP_SUCCESS
 
     def _test_connectivity(self, param):
-
         action_result = self.add_action_result(phantom.ActionResult(dict(param)))
         self.save_progress("Creating a temporary consumer to test connectivity")
 
@@ -122,7 +118,6 @@ class KafkaConnector(phantom.BaseConnector):
         parser = config.get("message_parser")
 
         if parser:
-
             parser_name = config["message_parser__filename"]
 
             self.save_progress(consts.KAFKA_TEST_PARSER.format(parser_name))
@@ -130,7 +125,6 @@ class KafkaConnector(phantom.BaseConnector):
             message_parser = imp.new_module(KAFKA_PARSER_MODULE_NAME)
 
             try:
-
                 exec(parser in message_parser.__dict__)
 
                 num_args = len(inspect.getargspec(message_parser.parse_messages).args)
@@ -147,7 +141,6 @@ class KafkaConnector(phantom.BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _save_container(self, container_dict):
-
         config = self.get_config()
 
         container = container_dict.get("container")
@@ -171,7 +164,6 @@ class KafkaConnector(phantom.BaseConnector):
                 self.save_artifact(artifact)
 
     def _seek(self, consumer, tp_list):
-
         config = self.get_config()
         topic = config["topic"]
 
@@ -185,7 +177,6 @@ class KafkaConnector(phantom.BaseConnector):
                 consumer.seek(tp, offset)
 
     def _on_poll(self, param):
-
         self.debug_print("param", param)
 
         config = self.get_config()
@@ -247,7 +238,6 @@ class KafkaConnector(phantom.BaseConnector):
             parser_args.append(message_dict)
 
         if parser:
-
             parser_name = config["message_parser__filename"]
             self.save_progress(consts.KAFKA_USING_PARSER.format(parser_name))
 
@@ -268,7 +258,6 @@ class KafkaConnector(phantom.BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _post_data(self, param):
-
         self.debug_print("param", param)
 
         # Add an action result to the App Run
@@ -288,7 +277,6 @@ class KafkaConnector(phantom.BaseConnector):
         data = param.get("data")
 
         if data_type == "JSON":
-
             self._producer.config["value_serializer"] = lambda x: json.dumps(x, indent=4, separators=(",", ": "), ensure_ascii=False).encode(
                 "utf-8"
             )
@@ -313,18 +301,15 @@ class KafkaConnector(phantom.BaseConnector):
         count = 0
         failed = 0
         for message in data:
-
             count += 1
 
             try:
-
                 if data_type == "string":
                     message = bytes(message, encoding="utf8")
 
                 send = self._producer.send(topic, message)
 
                 if timeout:
-
                     send_data = send.get(timeout=timeout)
 
                     if send_data.partition is None:
@@ -353,13 +338,10 @@ class KafkaConnector(phantom.BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, consts.KAFKA_SUCCESS_SEND)
 
     def _check_hosts(self, hosts):
-
         failed = False
 
         for host in hosts:
-
             try:
-
                 split_host = host.split(":")
 
                 if len(split_host) == 2:
@@ -384,7 +366,6 @@ class KafkaConnector(phantom.BaseConnector):
         return not failed
 
     def _build_result_dict(self, data):
-
         result_dict = {}
         result_dict["partition"] = data.partition
         result_dict["offset"] = data.offset
@@ -398,7 +379,6 @@ class KafkaConnector(phantom.BaseConnector):
         return result_dict
 
     def handle_action(self, param):
-
         ret_val = None
 
         # Get the action that we are supposed to execute for this App Run
@@ -417,7 +397,6 @@ class KafkaConnector(phantom.BaseConnector):
 
 
 if __name__ == "__main__":
-
     import argparse
     import sys
 
@@ -443,14 +422,14 @@ if __name__ == "__main__":
             r = requests.get(login_url, verify=args.verify, timeout=consts.DEFAULT_TIMEOUT)
             csrftoken = r.cookies["csrftoken"]
             data = {"username": args.username, "password": args.password, "csrfmiddlewaretoken": csrftoken}
-            headers = {"Cookie": "csrftoken={0}".format(csrftoken), "Referer": login_url}
+            headers = {"Cookie": f"csrftoken={csrftoken}", "Referer": login_url}
 
             print("Logging into Platform to get the session id")
             r2 = requests.post(login_url, verify=args.verify, data=data, headers=headers, timeout=consts.DEFAULT_TIMEOUT)
             session_id = r2.cookies["sessionid"]
 
         except Exception as e:
-            print(("Unable to get session id from the platform. Error: {0}".format(str(e))))
+            print(f"Unable to get session id from the platform. Error: {e!s}")
             sys.exit(1)
 
     if len(sys.argv) < 2:

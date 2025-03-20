@@ -1,6 +1,6 @@
 # File: kafka_parser.py
 #
-# Copyright (c) 2017-2024 Splunk Inc.
+# Copyright (c) 2017-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
 # and limitations under the License.
 from datetime import datetime
 
+
 time_format = "%Y-%m-%d %H:%M:%S"
 
 
 def parse_messages(topic, messages):
-
     ret_json = {}
     container_json = {}
     artifact_list = []
@@ -26,7 +26,7 @@ def parse_messages(topic, messages):
     ret_json["container"] = container_json
     ret_json["artifacts"] = artifact_list
 
-    name = "Messages ingested from {0} at {1}".format(topic, datetime.now().strftime(time_format))
+    name = f"Messages ingested from {topic} at {datetime.now().strftime(time_format)}"
 
     container_json["name"] = name
     container_json["description"] = "Some messages from Kafka"
@@ -35,11 +35,10 @@ def parse_messages(topic, messages):
     count = 0
     num_artifacts = len(messages)
     for message in messages:
-
         artifact_json = {}
         artifact_list.append(artifact_json)
 
-        artifact_json["source_data_identifier"] = "{0}:{1}".format(message["partition"], message["offset"])
+        artifact_json["source_data_identifier"] = "{}:{}".format(message["partition"], message["offset"])
         artifact_json["cef"] = {"message": message["message"]}
         artifact_json["name"] = message["message"][:100]
 
