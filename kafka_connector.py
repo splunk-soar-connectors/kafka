@@ -24,11 +24,11 @@ from io import StringIO
 
 import phantom.app as phantom
 import simplejson as json
+from kafka import KafkaConsumer, KafkaProducer, TopicPartition  # pylint: disable=E0611
+from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
 
 # Imports local to this App
 import kafka_consts as consts
-from kafka import KafkaConsumer, KafkaProducer, TopicPartition  # pylint: disable=E0611
-from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
 from kafka_parser import parse_messages
 
 
