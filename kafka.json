@@ -16,7 +16,7 @@
     "fips_compliant": true,
     "logo": "logo_apache.svg",
     "logo_dark": "logo_apache_dark.svg",
-    "python_version": "3",
+    "python_version": ["3.9", "3.13"],
     "configuration": {
         "hosts": {
             "data_type": "string",
