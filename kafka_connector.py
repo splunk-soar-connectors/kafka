@@ -15,11 +15,11 @@
 #
 #
 # Phantom App imports
-import imp
 import inspect
 import logging
 import re
 import traceback
+import types
 from io import StringIO
 
 import phantom.app as phantom
@@ -122,16 +122,17 @@ class KafkaConnector(phantom.BaseConnector):
 
             self.save_progress(consts.KAFKA_TEST_PARSER.format(parser_name))
 
-            message_parser = imp.new_module(KAFKA_PARSER_MODULE_NAME)
+            message_parser = types.ModuleType(KAFKA_PARSER_MODULE_NAME)
 
             try:
-                exec(parser in message_parser.__dict__)
+                exec(parser, message_parser.__dict__)
 
-                num_args = len(inspect.getargspec(message_parser.parse_messages).args)
+                sig = inspect.signature(message_parser.parse_messages)  # pylint: disable=no-member
+                num_args = len(sig.parameters)
                 if num_args != 2:
                     return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_PARSER_ARGS.format(parser_name, num_args))
 
-                message_parser.parse_messages(config["topic"], consts.KAFKA_TEST_MESSAGES)
+                message_parser.parse_messages(config["topic"], consts.KAFKA_TEST_MESSAGES)  # pylint: disable=no-member
 
             except Exception as e:
                 return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_MESSAGE_PARSER.format(parser_name, e))
@@ -213,7 +214,7 @@ class KafkaConnector(phantom.BaseConnector):
             poll_dict = consumer.poll(timeout_ms=int(config.get("timeout", 0)), max_records=max_messages)
 
         else:
-            max_messages = self._seek(consumer, tp_list)
+            self._seek(consumer, tp_list)
             poll_dict = consumer.poll(timeout_ms=int(config.get("timeout", 0)))
 
         messages = []
@@ -241,11 +242,11 @@ class KafkaConnector(phantom.BaseConnector):
             parser_name = config["message_parser__filename"]
             self.save_progress(consts.KAFKA_USING_PARSER.format(parser_name))
 
-            message_parser = imp.new_module(KAFKA_PARSER_MODULE_NAME)
+            message_parser = types.ModuleType(KAFKA_PARSER_MODULE_NAME)
 
             try:
-                exec(parser in message_parser.__dict__)
-                containers = message_parser.parse_messages(topic, parser_args)
+                exec(parser, message_parser.__dict__)
+                containers = message_parser.parse_messages(topic, parser_args)  # pylint: disable=no-member
             except Exception as e:
                 return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_MESSAGE_PARSER.format(parser_name, e))
 
