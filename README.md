@@ -4,7 +4,7 @@ Publisher: Splunk <br>
 Connector Version: 2.1.0 <br>
 Product Vendor: Apache <br>
 Product Name: Kafka <br>
-Minimum Product Version: 7.1.0
+Minimum Product Version: 7.0.0
 
 This app implements ingesting and sending data on the Apache Kafka messaging system
 
