@@ -5,18 +5,18 @@
     "publisher": "Splunk",
     "package_name": "phantom_kafka",
     "type": "devops",
-    "license": "Copyright (c) 2017-2025 Splunk Inc.",
+    "license": "Copyright (c) 2017-2026 Splunk Inc.",
     "main_module": "kafka_connector.py",
-    "app_version": "2.0.8",
-    "utctime_updated": "2024-09-30T13:04:00.000000Z",
+    "app_version": "2.1.0",
+    "utctime_updated": "2026-02-08T13:04:00.000000Z",
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
-    "min_phantom_version": "6.2.1",
+    "min_phantom_version": "7.0.0",
     "fips_compliant": true,
     "logo": "logo_apache.svg",
     "logo_dark": "logo_apache_dark.svg",
-    "python_version": "3",
+    "python_version": "3.13",
     "configuration": {
         "hosts": {
             "data_type": "string",
@@ -271,7 +271,7 @@
             "versions": "EQ(*)"
         }
     ],
-    "pip_dependencies": {
+    "pip313_dependencies": {
         "wheel": [
             {
                 "module": "decorator",
@@ -279,35 +279,11 @@
             },
             {
                 "module": "gssapi",
-                "input_file": "wheels/py36/gssapi-1.7.3-cp36-cp36m-manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py313/gssapi-1.10.1-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "kafka_python",
-                "input_file": "wheels/shared/kafka_python-2.0.2-py2.py3-none-any.whl"
-            },
-            {
-                "module": "simplejson",
-                "input_file": "wheels/py36/simplejson-3.17.2-cp36-cp36m-manylinux2010_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl"
-            }
-        ]
-    },
-    "pip39_dependencies": {
-        "wheel": [
-            {
-                "module": "decorator",
-                "input_file": "wheels/py3/decorator-5.1.1-py3-none-any.whl"
-            },
-            {
-                "module": "gssapi",
-                "input_file": "wheels/py39/gssapi-1.7.3-cp39-cp39-manylinux_2_28_x86_64.whl"
-            },
-            {
-                "module": "kafka_python",
-                "input_file": "wheels/shared/kafka_python-2.0.2-py2.py3-none-any.whl"
-            },
-            {
-                "module": "simplejson",
-                "input_file": "wheels/py39/simplejson-3.17.2-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/shared/kafka_python-2.3.0-py2.py3-none-any.whl"
             }
         ]
     }
