@@ -47,6 +47,7 @@ KAFKA_ERROR_INVALID_PORT = "Could not connect to Kafka on {0} due to:\nInvalid p
 KAFKA_ERROR_EMPTY_LIST = "Got an empty list as message to send. To send an empty list, try '[[]]'"
 KAFKA_ERROR_PARSER_ARGS = "{0}: parse_messages() should take exactly 2 arguments, takes {1} instead"
 KAFKA_ERROR_SSL_CONFIG = "To use SSL, at least one of cert_file, key_file, or ca_cert asset configuration parameters must be filled out"
+KAFKA_ERROR_SAVE_CONTAINER = "Failed to save ingested Kafka data: {0}"
 
 KAFKA_TEST_CONNECTIVITY_FAILED = "Test Connectivity Failed"
 KAFKA_TEST_CONNECTIVITY_PASSED = "Test Connectivity Passed"

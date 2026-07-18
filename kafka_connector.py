@@ -159,10 +159,18 @@ class KafkaConnector(phantom.BaseConnector):
             artifact["container_id"] = container_id
 
         if hasattr(self, "save_artifacts"):
-            self.save_artifacts(artifacts)
+            ret_val, message, _ = self.save_artifacts(artifacts)
+
+            if phantom.is_fail(ret_val):
+                return ret_val, message
         else:
             for artifact in artifacts:
-                self.save_artifact(artifact)
+                ret_val, message, _ = self.save_artifact(artifact)
+
+                if phantom.is_fail(ret_val):
+                    return ret_val, message
+
+        return phantom.APP_SUCCESS, ""
 
     def _seek(self, consumer, tp_list):
         config = self.get_config()
@@ -221,10 +229,6 @@ class KafkaConnector(phantom.BaseConnector):
         for tp in tp_list:
             messages += poll_dict.get(tp, [])
 
-        if not self.is_poll_now():
-            for tp in tp_list:
-                self._state[topic][str(tp.partition)] = consumer.position(tp)
-
         if not messages:
             return action_result.set_status(phantom.APP_SUCCESS, consts.KAFKA_NO_MESSAGES)
 
@@ -254,7 +258,13 @@ class KafkaConnector(phantom.BaseConnector):
             containers = parse_messages(topic, parser_args)
 
         for container in containers:
-            self._save_container(container)
+            ret_val, message = self._save_container(container)
+            if phantom.is_fail(ret_val):
+                return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SAVE_CONTAINER.format(message))
+
+        if not self.is_poll_now():
+            for tp in tp_list:
+                self._state[topic][str(tp.partition)] = consumer.position(tp)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
