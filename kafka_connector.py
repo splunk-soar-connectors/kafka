@@ -309,11 +309,9 @@ class KafkaConnector(phantom.BaseConnector):
         if len(data) == 0:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_EMPTY_LIST)
 
-        count = 0
         failed = 0
+        pending_sends = []
         for message in data:
-            count += 1
-
             try:
                 if data_type == "string":
                     message = bytes(message, encoding="utf8")
@@ -330,8 +328,8 @@ class KafkaConnector(phantom.BaseConnector):
 
                     action_result.add_data(self._build_result_dict(send_data))
 
-                elif count == len(data):
-                    send.get()
+                else:
+                    pending_sends.append((message, send))
 
             except KafkaTimeoutError:
                 self.save_progress(consts.KAFKA_ERROR_TIMEOUT)
@@ -342,6 +340,21 @@ class KafkaConnector(phantom.BaseConnector):
                 self.save_progress(consts.KAFKA_PRODUCER_SEND_ERROR.format(e))
                 action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": str(e)})
                 failed += 1
+
+        if not timeout:
+            self._producer.flush()
+
+            for message, send in pending_sends:
+                try:
+                    send.get()
+                except KafkaTimeoutError:
+                    self.save_progress(consts.KAFKA_ERROR_TIMEOUT)
+                    action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": consts.KAFKA_ERROR_TIMEOUT})
+                    failed += 1
+                except Exception as e:
+                    self.save_progress(consts.KAFKA_PRODUCER_SEND_ERROR.format(e))
+                    action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": str(e)})
+                    failed += 1
 
         if failed:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILED.format(failed, "" if failed == 1 else "s"))
