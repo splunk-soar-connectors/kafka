@@ -77,7 +77,7 @@ class KafkaConnector(phantom.BaseConnector):
             if "key_file" in config:
                 self._client_args.update({"ssl_keyfile": config["key_file"]})
             if "ca_cert" in config:
-                self._client_args.update({"ssl_cafile": config["ca_cert"], "ssl_check_hostname": False})
+                self._client_args.update({"ssl_cafile": config["ca_cert"], "ssl_check_hostname": True})
 
         self._client_args.update({"security_protocol": sec_prot})
 
