@@ -77,7 +77,7 @@ class KafkaConnector(phantom.BaseConnector):
             if "key_file" in config:
                 self._client_args.update({"ssl_keyfile": config["key_file"]})
             if "ca_cert" in config:
-                self._client_args.update({"ssl_cafile": config["ca_cert"], "ssl_check_hostname": False})
+                self._client_args.update({"ssl_cafile": config["ca_cert"], "ssl_check_hostname": True})
 
         self._client_args.update({"security_protocol": sec_prot})
 
@@ -159,10 +159,18 @@ class KafkaConnector(phantom.BaseConnector):
             artifact["container_id"] = container_id
 
         if hasattr(self, "save_artifacts"):
-            self.save_artifacts(artifacts)
+            ret_val, message, _ = self.save_artifacts(artifacts)
+
+            if phantom.is_fail(ret_val):
+                return ret_val, message
         else:
             for artifact in artifacts:
-                self.save_artifact(artifact)
+                ret_val, message, _ = self.save_artifact(artifact)
+
+                if phantom.is_fail(ret_val):
+                    return ret_val, message
+
+        return phantom.APP_SUCCESS, ""
 
     def _seek(self, consumer, tp_list):
         config = self.get_config()
@@ -221,10 +229,6 @@ class KafkaConnector(phantom.BaseConnector):
         for tp in tp_list:
             messages += poll_dict.get(tp, [])
 
-        if not self.is_poll_now():
-            for tp in tp_list:
-                self._state[topic][str(tp.partition)] = consumer.position(tp)
-
         if not messages:
             return action_result.set_status(phantom.APP_SUCCESS, consts.KAFKA_NO_MESSAGES)
 
@@ -254,7 +258,13 @@ class KafkaConnector(phantom.BaseConnector):
             containers = parse_messages(topic, parser_args)
 
         for container in containers:
-            self._save_container(container)
+            ret_val, message = self._save_container(container)
+            if phantom.is_fail(ret_val):
+                return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SAVE_CONTAINER.format(message))
+
+        if not self.is_poll_now():
+            for tp in tp_list:
+                self._state[topic][str(tp.partition)] = consumer.position(tp)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -299,11 +309,9 @@ class KafkaConnector(phantom.BaseConnector):
         if len(data) == 0:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_EMPTY_LIST)
 
-        count = 0
         failed = 0
+        pending_sends = []
         for message in data:
-            count += 1
-
             try:
                 if data_type == "string":
                     message = bytes(message, encoding="utf8")
@@ -320,8 +328,8 @@ class KafkaConnector(phantom.BaseConnector):
 
                     action_result.add_data(self._build_result_dict(send_data))
 
-                elif count == len(data):
-                    send.get()
+                else:
+                    pending_sends.append((message, send))
 
             except KafkaTimeoutError:
                 self.save_progress(consts.KAFKA_ERROR_TIMEOUT)
@@ -332,6 +340,21 @@ class KafkaConnector(phantom.BaseConnector):
                 self.save_progress(consts.KAFKA_PRODUCER_SEND_ERROR.format(e))
                 action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": str(e)})
                 failed += 1
+
+        if not timeout:
+            self._producer.flush()
+
+            for message, send in pending_sends:
+                try:
+                    send.get()
+                except KafkaTimeoutError:
+                    self.save_progress(consts.KAFKA_ERROR_TIMEOUT)
+                    action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": consts.KAFKA_ERROR_TIMEOUT})
+                    failed += 1
+                except Exception as e:
+                    self.save_progress(consts.KAFKA_PRODUCER_SEND_ERROR.format(e))
+                    action_result.add_data({"message": message, "topic": topic, "status": "failed", "error": str(e)})
+                    failed += 1
 
         if failed:
             return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_SEND_FAILED.format(failed, "" if failed == 1 else "s"))
