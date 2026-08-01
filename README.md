@@ -47,7 +47,6 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
 **hosts** | required | string | Hosts in the cluster (comma separated e.g. host1.com:9092,host2.org:2181,10.10.10.10:9092) |
 **topic** | required | string | Topic to subscribe to for ingestion |
-**message_parser** | optional | file | Python file containing a message parsing method |
 **timeout** | required | numeric | How long to poll for messages each interval (ms) |
 **read_from_beginning** | required | boolean | Start ingesting from the beginning of the topic |
 **use_kerberos** | optional | boolean | Use Kerberos auth |
