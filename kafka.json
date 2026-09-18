@@ -12,7 +12,7 @@
     "product_vendor": "Apache",
     "product_name": "Kafka",
     "product_version_regex": ".*",
-    "min_phantom_version": "7.0.0",
+    "min_phantom_version": "8.9.0",
     "fips_compliant": true,
     "logo": "logo_apache.svg",
     "logo_dark": "logo_apache_dark.svg",
@@ -30,54 +30,60 @@
             "required": true,
             "order": 1
         },
+        "message_parser": {
+            "data_type": "python_script",
+            "description": "Python file containing a message parsing method",
+            "required": false,
+            "order": 2
+        },
         "ph": {
             "data_type": "ph",
-            "order": 2
+            "order": 3
         },
         "timeout": {
             "data_type": "numeric",
             "description": "How long to poll for messages each interval (ms)",
             "required": true,
-            "order": 3
+            "order": 4
         },
         "read_from_beginning": {
             "data_type": "boolean",
             "description": "Start ingesting from the beginning of the topic",
             "required": true,
             "default": false,
-            "order": 4
+            "order": 5
         },
         "use_kerberos": {
             "data_type": "boolean",
             "description": "Use Kerberos auth",
             "required": false,
             "default": false,
-            "order": 5
+            "order": 6
         },
         "use_ssl": {
             "data_type": "boolean",
             "description": "Use SSL",
             "required": false,
             "default": false,
-            "order": 6
+            "order": 7
         },
         "cert_file": {
             "data_type": "string",
             "description": "Path to SSL certificate file",
             "required": false,
-            "order": 7
+            "order": 8
         },
         "key_file": {
             "data_type": "string",
             "description": "Path to SSL key file",
             "required": false,
-            "order": 8
+            "order": 9
         },
         "ca_cert": {
             "data_type": "string",
             "description": "Path to CA certificate file",
             "required": false,
-            "order": 9
+            "order": 10
         }
     },
     "actions": [

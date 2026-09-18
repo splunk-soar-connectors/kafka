@@ -11,24 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import ast
+import json
 from pathlib import Path
 
 
-CONNECTOR_SOURCE = Path(__file__).parents[1] / "kafka_connector.py"
+ROOT = Path(__file__).parents[1]
 
 
-def test_connector_has_no_dynamic_execution_primitive():
-    tree = ast.parse(CONNECTOR_SOURCE.read_text())
-    called_names = {node.func.id for node in ast.walk(tree) if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)}
+def test_manifest_requires_edit_code_for_custom_message_parser():
+    manifest = json.loads((ROOT / "kafka.json").read_text())
 
-    assert "exec" not in called_names
-    assert "eval" not in called_names
-    assert "compile" not in called_names
+    assert manifest["configuration"]["message_parser"]["data_type"] == "python_script"
+    assert manifest["min_phantom_version"] == "8.9.0"
 
 
-def test_legacy_parser_values_are_rejected_during_initialization():
-    source = CONNECTOR_SOURCE.read_text()
+def test_connector_executes_the_permission_gated_parser():
+    source = (ROOT / "kafka_connector.py").read_text()
 
     assert 'config.get("message_parser")' in source
-    assert "Custom message parsers are no longer supported" in source
+    assert "exec(parser, message_parser.__dict__)" in source

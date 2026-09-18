@@ -15,18 +15,20 @@
 #
 #
 # Phantom App imports
+import inspect
 import logging
 import re
 import traceback
+import types
 from io import StringIO
 
 import phantom.app as phantom
 import simplejson as json
+from kafka import KafkaConsumer, KafkaProducer, TopicPartition  # pylint: disable=E0611
+from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
 
 # Imports local to this App
 import kafka_consts as consts
-from kafka import KafkaConsumer, KafkaProducer, TopicPartition  # pylint: disable=E0611
-from kafka.errors import KafkaTimeoutError, NoBrokersAvailable  # pylint: disable=E0401,E0611
 from kafka_parser import parse_messages
 
 
@@ -34,6 +36,8 @@ logger = logging.getLogger("kafka")
 log_stream = StringIO()
 logging.basicConfig(stream=log_stream, level=logging.DEBUG)
 logger.setLevel(logging.DEBUG)
+
+KAFKA_PARSER_MODULE_NAME = "custom_parser"
 
 
 # Define the App Class
@@ -55,12 +59,6 @@ class KafkaConnector(phantom.BaseConnector):
         self._state = self.load_state()
 
         config = self.get_config()
-
-        if config.get("message_parser"):
-            return self.set_status(
-                phantom.APP_ERROR,
-                "Custom message parsers are no longer supported. Remove the legacy message_parser asset value before running this connector.",
-            )
 
         self._host_list = config["hosts"].split(",")
         self._client_args = {"bootstrap_servers": self._host_list}
@@ -116,6 +114,24 @@ class KafkaConnector(phantom.BaseConnector):
 
         if not self._check_hosts(self._host_list):
             self.save_progress(consts.KAFKA_WARNING_SOME_HOSTS_FAILED)
+
+        parser = config.get("message_parser")
+
+        if parser:
+            parser_name = config["message_parser__filename"]
+            self.save_progress(consts.KAFKA_TEST_PARSER.format(parser_name))
+            message_parser = types.ModuleType(KAFKA_PARSER_MODULE_NAME)
+
+            try:
+                exec(parser, message_parser.__dict__)  # nosec B102: asset field requires SOAR Edit Code permission
+                sig = inspect.signature(message_parser.parse_messages)  # pylint: disable=no-member
+                num_args = len(sig.parameters)
+                if num_args != 2:
+                    return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_PARSER_ARGS.format(parser_name, num_args))
+
+                message_parser.parse_messages(config["topic"], consts.KAFKA_TEST_MESSAGES)  # pylint: disable=no-member
+            except Exception as e:
+                return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_MESSAGE_PARSER.format(parser_name, e))
 
         self.save_progress(consts.KAFKA_TEST_CONNECTIVITY_PASSED)
 
@@ -212,6 +228,7 @@ class KafkaConnector(phantom.BaseConnector):
         if not messages:
             return action_result.set_status(phantom.APP_SUCCESS, consts.KAFKA_NO_MESSAGES)
 
+        parser = config.get("message_parser")
         parser_args = []
 
         for message in messages:
@@ -221,7 +238,18 @@ class KafkaConnector(phantom.BaseConnector):
             message_dict["message"] = message.value.decode("utf-8")
             parser_args.append(message_dict)
 
-        containers = parse_messages(topic, parser_args)
+        if parser:
+            parser_name = config["message_parser__filename"]
+            self.save_progress(consts.KAFKA_USING_PARSER.format(parser_name))
+            message_parser = types.ModuleType(KAFKA_PARSER_MODULE_NAME)
+
+            try:
+                exec(parser, message_parser.__dict__)  # nosec B102: asset field requires SOAR Edit Code permission
+                containers = message_parser.parse_messages(topic, parser_args)  # pylint: disable=no-member
+            except Exception as e:
+                return action_result.set_status(phantom.APP_ERROR, consts.KAFKA_ERROR_MESSAGE_PARSER.format(parser_name, e))
+        else:
+            containers = parse_messages(topic, parser_args)
 
         for container in containers:
             ret_val, message = self._save_container(container)

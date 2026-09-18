@@ -4,7 +4,7 @@ Publisher: Splunk <br>
 Connector Version: 3.0.0 <br>
 Product Vendor: Apache <br>
 Product Name: Kafka <br>
-Minimum Product Version: 7.0.0
+Minimum Product Version: 8.9.0
 
 This app implements ingesting and sending data on the Apache Kafka messaging system
 
@@ -47,6 +47,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
 **hosts** | required | string | Hosts in the cluster (comma separated e.g. host1.com:9092,host2.org:2181,10.10.10.10:9092) |
 **topic** | required | string | Topic to subscribe to for ingestion |
+**message_parser** | optional | python_script | Python file containing a message parsing method |
 **timeout** | required | numeric | How long to poll for messages each interval (ms) |
 **read_from_beginning** | required | boolean | Start ingesting from the beginning of the topic |
 **use_kerberos** | optional | boolean | Use Kerberos auth |
