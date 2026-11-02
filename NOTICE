@@ -53,7 +53,7 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
 
 @@@@============================================================================
 
-Library: kafka-python - 2.3.0
+Library: kafka-python - 2.3.2
 Homepage: https://github.com/dpkp/kafka-python
 License: Apache Software License
 License Text:
