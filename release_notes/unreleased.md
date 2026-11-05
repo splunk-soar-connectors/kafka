@@ -1,3 +1,1 @@
 **Unreleased**
-
-* Updated dependencies. [PSAAS-35449]
