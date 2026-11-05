@@ -277,7 +277,7 @@
             },
             {
                 "module": "kafka_python",
-                "input_file": "wheels/shared/kafka_python-2.3.0-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/kafka_python-2.3.2-py2.py3-none-any.whl"
             }
         ]
     }
